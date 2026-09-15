@@ -1,0 +1,4416 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+<title>Wheel of Origin — Retro</title>
+<style>
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #000000;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --bg4: #222222;
+    --border: #333333;
+    --border2: #444444;
+    --accent: #c8980a;
+    --accent2: #d4a820;
+    --text: #ffffff;
+    --text2: #aaaaaa;
+    --text3: #666666;
+    --nav-bg: #161616;
+    --btn-bg: #1c1c1c;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    font-family: 'Pixel', system-ui, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 430px;
+    height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* HEADER CENTER */
+  #header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 18px 0px;
+    flex-shrink: 0;
+  }
+
+  #wheel-icon {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wheel-icon-svg {
+    width: 38px;
+    height: 38px;
+    stroke: #d4a820;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(200,155,20,0.55));
+  }
+
+  #title-card {
+    background: rgba(10,7,2,0.85);
+    border: 1px solid rgba(160,120,30,0.5);
+    border-top-color: rgba(220,180,60,0.7);
+    border-radius: 3px;
+    padding: 8px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: Pixel, monospace;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(180deg, #fffbe8 0%, #f0d878 20%, #c8980a 45%, #e8c84a 60%, #a07008 75%, #d4a820 90%, #f5e080 100%);
+    filter: drop-shadow(0 0 8px rgba(200,155,20,0.4));
+    margin-bottom: 6px;
+  }
+
+  #result-text-svg {
+    display: block;
+    width: 100%;
+    height: 46px;
+    overflow: visible;
+  }
+  #result-text {
+    /* SVG text element — styled via attributes */
+  }
+
+  /* WHEEL AREA */
+  #wheel-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 0;
+  }
+
+  #canvas-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #reward-panel {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 30;
+    text-align: center;
+    white-space: nowrap;
+    animation: rpPopIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes rpPopIn {
+    from { opacity: 0; transform: translateX(-50%) scale(0.85) translateY(4px); }
+    to   { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0);   }
+  }
+  #reward-panel .rp-name {
+    display: none;
+  }
+  #reward-panel .rp-stats {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 2px;
+    display: block;
+    text-shadow: 0 1px 4px rgba(0,0,0,1);
+  }
+  #reward-panel .rp-combo {
+    max-width: calc(100vw - 20px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #reward-panel .rp-combo-main {
+    display: block;
+    white-space: nowrap;
+  }
+  #reward-panel .rp-fit-line {
+    display: block;
+    max-width: calc(100vw - 20px);
+    margin-left: auto;
+    margin-right: auto;
+    white-space: nowrap;
+  }
+  /* Die iPad-Regeln geben einzelnen Stat-Chips sonst erneut 28 px. Innerhalb
+     einer automatisch angepassten Zeile erben alle Teile dieselbe Schrift. */
+  #reward-panel .rp-fit-line .stat-chip,
+  #reward-panel .rp-fit-line .stat-chip-sep {
+    font-size: inherit !important;
+  }
+  #reward-panel .rp-trigger {
+    display: block;
+    max-width: min(86vw, 620px);
+    margin: 0 auto;
+    color: rgba(225,225,225,0.66);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  }
+  .rp-src {
+    color: #f0c040;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    margin-right: 7px;
+    text-transform: uppercase;
+    opacity: .95;
+  }
+  .rp-pos { color: #55ee77; }
+  .rp-neg { color: #ff5544; }
+  .rp-neu { color: #666; }
+
+  /* Animated stat chips */
+  @keyframes statChipIn {
+    0%   { opacity: 0; transform: translateY(18px) scale(0.75); }
+    60%  { opacity: 1; transform: translateY(-3px) scale(1.08); }
+    100% { opacity: 1; transform: translateY(0px) scale(1); }
+  }
+  .stat-chip {
+    display: inline-block;
+    opacity: 0;
+    animation: statChipIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+  .stat-chip-sep {
+    display: inline-block;
+    opacity: 0;
+    animation: statChipIn 0.28s ease forwards;
+    will-change: opacity;
+  }
+
+  #wheel-spin-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: none;
+    pointer-events: none;
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+  }
+
+  #wheel-canvas {
+    position: relative;
+    z-index: 2;
+    display: block;
+    border-radius: 50%;
+  }
+
+  /* BOTTOM CONTROLS */
+  #bottom-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 10px;
+    flex-shrink: 0;
+    gap: 10px;
+  }
+
+  .ctrl-btn-round {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .ctrl-btn-round:active { background: var(--bg4); }
+  .ctrl-btn-round svg { width: 18px; height: 18px; fill: none; stroke: var(--text2); stroke-width: 2.2; stroke-linecap: round; }
+
+  #reset-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 22px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: 'Pixel', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background 0.15s;
+  }
+  #reset-btn:active { background: var(--bg4); }
+
+  .ctrl-btn-edit {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid rgba(160,120,30,0.34);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    padding: 0;
+    opacity: 0.42;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .ctrl-btn-edit:disabled { opacity: 0.12; cursor: default; }
+  .ctrl-btn-edit:not(:disabled):active { background: rgba(200,155,20,0.08); }
+  .ctrl-btn-edit svg { width: 18px; height: 18px; fill: none; stroke: rgba(220,185,80,0.82); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* RACE COLOR / ORDER EDITOR */
+  #race-editor-btn {
+    opacity: 0.58;
+  }
+  #race-editor-btn:disabled {
+    opacity: 0.12;
+  }
+  #race-editor-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 260;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  #race-editor-overlay.open {
+    display: flex;
+  }
+  #race-editor-panel {
+    width: 100%;
+    max-height: calc(100% - 8px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #101012;
+    border: 1px solid rgba(205,165,55,0.48);
+    box-shadow: 0 18px 70px rgba(0,0,0,0.9), 0 0 24px rgba(190,145,25,0.12);
+  }
+  .race-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid #28282d;
+    flex-shrink: 0;
+  }
+  .race-editor-title {
+    font-family: Pixel, monospace;
+    color: #e1b631;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+  .race-editor-subtitle {
+    margin-top: 3px;
+    color: #777780;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+  .race-editor-close {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid #34343a;
+    background: #1b1b1f;
+    color: #aaa;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .race-editor-toolbar {
+    padding: 10px 12px;
+    border-bottom: 1px solid #25252a;
+    flex-shrink: 0;
+  }
+  .race-editor-toolbar-label {
+    color: #74747e;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .race-editor-toolbar-label.layout-label {
+    margin-top: 10px;
+  }
+  .race-editor-wheel-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 6px;
+  }
+  .race-editor-wheel-tab {
+    min-height: 34px;
+    padding: 6px 5px;
+    border-radius: 9px;
+    border: 1px solid #34343b;
+    background: #17171c;
+    color: #8c8c96;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+  .race-editor-wheel-tab.active {
+    border-color: rgba(74,167,235,0.74);
+    background: rgba(22,105,160,0.18);
+    color: #8fd8ff;
+  }
+  .race-editor-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 6px;
+  }
+  .race-editor-preset {
+    min-height: 34px;
+    padding: 6px 5px;
+    border-radius: 9px;
+    border: 1px solid #34343b;
+    background: #1a1a1f;
+    color: #8c8c96;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .race-editor-preset.active {
+    border-color: rgba(218,174,46,0.72);
+    background: rgba(183,133,15,0.16);
+    color: #efc84f;
+  }
+  #race-editor-list {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 9px 12px;
+  }
+  .race-editor-row {
+    --race-row-color: #666a74;
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0,1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 7px;
+    border-radius: 11px;
+    border: 1px solid #2b2b31;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--race-row-color) 15%, #151519), #151519 42%);
+    touch-action: pan-y;
+  }
+  .race-editor-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--race-row-color);
+  }
+  .race-editor-row.dragging {
+    opacity: 0.72;
+    border-color: rgba(225,182,49,0.7);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.55);
+  }
+  .race-drag-handle {
+    width: 28px;
+    height: 46px;
+    border: 0;
+    background: transparent;
+    color: #62626d;
+    font-size: 18px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .race-editor-main {
+    min-width: 0;
+  }
+  .race-editor-name-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin-bottom: 6px;
+  }
+  .race-editor-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #f2f2f4;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .race-editor-tier {
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    text-shadow: 0 1px 2px #000;
+  }
+  .race-editor-color-line {
+    display: grid;
+    grid-template-columns: 37px minmax(72px,96px) minmax(0,1fr) 28px;
+    gap: 5px;
+    align-items: center;
+  }
+  .race-color-picker {
+    width: 37px;
+    height: 29px;
+    padding: 1px;
+    border: 1px solid #3b3b43;
+    border-radius: 7px;
+    background: #202027;
+  }
+  .race-color-preset-select,
+  .race-color-hex {
+    width: 100%;
+    height: 29px;
+    border: 1px solid #33333a;
+    border-radius: 7px;
+    background: #1c1c21;
+    color: #bebec7;
+    font-family: inherit;
+    font-size: 9px;
+    outline: none;
+  }
+  .race-color-preset-select { padding: 0 4px; }
+  .race-color-hex {
+    padding: 0 7px;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .race-color-reset,
+  .race-move-btn {
+    border: 1px solid #34343b;
+    background: #1d1d22;
+    color: #85858e;
+    cursor: pointer;
+  }
+  .race-color-reset {
+    width: 28px;
+    height: 29px;
+    border-radius: 7px;
+    font-size: 13px;
+  }
+  .race-editor-move {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .race-move-btn {
+    width: 27px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 10px;
+  }
+  .race-editor-footer {
+    flex-shrink: 0;
+    padding: 9px 10px 10px;
+    border-top: 1px solid #29292e;
+    background: #121216;
+  }
+  .race-editor-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 6px;
+  }
+  .race-editor-action {
+    min-height: 34px;
+    padding: 6px 4px;
+    border-radius: 9px;
+    border: 1px solid #34343b;
+    background: #1b1b20;
+    color: #9999a3;
+    font-family: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .race-editor-action.primary {
+    border-color: rgba(210,166,45,0.62);
+    color: #e4bb43;
+  }
+  #race-editor-status {
+    min-height: 15px;
+    padding-top: 5px;
+    text-align: center;
+    color: #6fbc7c;
+    font-size: 9px;
+  }
+
+  @supports not (background: color-mix(in srgb, red 20%, black)) {
+    .race-editor-row { background: #151519; }
+  }
+
+  /* BOTTOM NAV */
+  #bottom-nav {
+    margin: 0 12px 10px;
+    background: var(--nav-bg);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    display: flex;
+    align-items: center;
+    padding: 6px 4px;
+    flex-shrink: 0;
+    gap: 2px;
+  }
+
+  .nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .nav-tab.active {
+    background: #2a2a2a;
+  }
+
+  .nav-tab svg {
+    width: 22px; height: 22px;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .nav-tab.active svg { stroke: var(--accent2); }
+  .nav-tab:not(.active) svg { stroke: var(--text3); }
+
+  .nav-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .nav-tab.active .nav-label { color: var(--accent2); }
+  .nav-tab:not(.active) .nav-label { color: var(--text3); }
+
+  .nav-tab:not(.active):active { background: #1e1e1e; }
+
+
+  /* ── iPad (768px+) — TikTok 9:16 scaling ── */
+  @media screen and (min-width: 600px) {
+    #app {
+      max-width: calc(100dvh * 9 / 16);
+      width: calc(100dvh * 9 / 16);
+    }
+
+    #header-center {
+      padding: 2px 22px 0px;
+      gap: 1px;
+    }
+
+    #wheel-icon {
+      width: 58px;
+      height: 58px;
+      margin-bottom: 2px;
+    }
+
+    .wheel-icon-svg {
+      width: 58px;
+      height: 58px;
+    }
+
+    #champion-name-display {
+      font-size: 18px !important;
+      letter-spacing: 3px !important;
+      min-height: 24px !important;
+      margin-bottom: 2px !important;
+    }
+
+    #title-card {
+      font-size: 26px !important;
+      padding: 9px 32px !important;
+      margin-bottom: 4px !important;
+      letter-spacing: 3px !important;
+    }
+
+    #result-text-svg {
+      height: 80px !important;
+    }
+
+    #result-text {
+      font-size: 54 !important;
+    }
+
+    .rp-stats {
+      font-size: 28px !important;
+      margin-top: -4px !important;
+    }
+
+    .stat-chip {
+      font-size: 28px !important;
+    }
+
+    .stat-chip-sep {
+      font-size: 28px !important;
+    }
+
+    #wheel-area {
+      padding-top: 14px;
+    }
+
+    #effect-preview {
+      top: 70px !important;
+    }
+    #reward-panel {
+      top: -28px !important;
+    }
+
+    #bottom-controls {
+      padding: 10px 22px 10px;
+      gap: 12px;
+    }
+
+    .ctrl-btn-round {
+      width: 52px !important;
+      height: 52px !important;
+    }
+
+    .ctrl-btn-main, #reset-btn {
+      height: 52px !important;
+      font-size: 17px !important;
+    }
+
+    .ctrl-btn-edit {
+      width: 52px !important;
+      height: 52px !important;
+    }
+
+    #race-editor-overlay { padding: 18px; }
+    .race-editor-title { font-size: 17px; }
+    .race-editor-subtitle { font-size: 12px; }
+    .race-editor-toolbar-label { font-size: 10px; }
+    .race-editor-wheel-tab { min-height: 40px; font-size: 12px; }
+    .race-editor-preset { min-height: 40px; font-size: 12px; }
+    .race-editor-row {
+      grid-template-columns: 32px minmax(0,1fr) auto;
+      padding: 10px;
+      gap: 10px;
+    }
+    .race-drag-handle { width: 32px; height: 52px; font-size: 21px; }
+    .race-editor-name { font-size: 14px; }
+    .race-editor-tier { font-size: 9px; }
+    .race-editor-color-line {
+      grid-template-columns: 42px minmax(88px,112px) minmax(0,1fr) 32px;
+      gap: 7px;
+    }
+    .race-color-picker,
+    .race-color-preset-select,
+    .race-color-hex { height: 34px; font-size: 11px; }
+    .race-color-picker { width: 42px; }
+    .race-color-reset { width: 32px; height: 34px; }
+    .race-move-btn { width: 31px; height: 25px; }
+    .race-editor-action { min-height: 40px; font-size: 11px; }
+    #race-editor-status { font-size: 10px; }
+
+    #bottom-nav {
+      margin: 0 16px 14px;
+    }
+
+    .nav-tab svg {
+      width: 28px !important;
+      height: 28px !important;
+    }
+
+    .nav-label {
+      font-size: 14px !important;
+    }
+  }
+
+  /* ── MOBILE (iPhone / Android) ── */
+  @media screen and (max-width: 430px) {
+    #app {
+      max-width: 100%;
+    }
+
+    #wheel-area {
+      padding-top: 18px;
+    }
+
+    #header-center {
+      padding: 6px 14px 0px;
+    }
+
+    #wheel-icon {
+      width: 28px;
+      height: 28px;
+      margin-bottom: 2px;
+    }
+
+    .wheel-icon-svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    #champion-name-display {
+      font-size: 8px !important;
+      letter-spacing: 2px !important;
+      min-height: 12px !important;
+      margin-bottom: 1px !important;
+    }
+
+    #title-card {
+      font-size: 11px !important;
+      padding: 5px 16px !important;
+      margin-bottom: 3px !important;
+      letter-spacing: 2px !important;
+    }
+
+    #result-text-svg {
+      height: 38px;
+    }
+
+    #result-text {
+      font-size: 32 !important;
+    }
+
+    .rp-stats {
+      font-size: 14px !important;
+    }
+
+    .stat-chip {
+      font-size: 14px !important;
+    }
+
+    #bottom-controls {
+      padding: 8px 14px 8px;
+      gap: 8px;
+    }
+
+    .ctrl-btn-round {
+      width: 36px !important;
+      height: 36px !important;
+    }
+
+    .ctrl-btn-main {
+      height: 36px !important;
+      font-size: 12px !important;
+      letter-spacing: 1px !important;
+    }
+
+    .ctrl-btn-edit {
+      width: 36px !important;
+      height: 36px !important;
+    }
+  }
+
+
+/* RETRO RESKIN — original app structure, centered 9:16 recording frame. */
+@font-face{font-family:Pixel;src:url(data:font/woff;base64,d09GRgABAAAAAAe4AAoAAAAAJCQAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABZAAAAC4AAABgRQBEJWNtYXAAAAHAAAAAgQAAAKADdgSVZ2x5ZgAAArQAAAOvAAAeSo8ZThtoZWFkAAAA9AAAADYAAAA2LqihOGhoZWEAAAEsAAAAHwAAACQFFgIraG10eAAAAZQAAAAsAAAA2m+4AABsb2NhAAACRAAAAHAAAABw6Z7xFW1heHAAAAFMAAAAGAAAACAATQBWbmFtZQAABmQAAACJAAAA/KYsirVwb3N0AAAG8AAAAMYAAAFo2OaJIQABAAAAAQAA3Y24J18PPPUAAwPoAAAAAObPLs4AAAAA5s8uzgAAAAAB9AK8AAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwBTBwMCQwviFASiCAswATDgDRgB4nGNgZGBgMGcIYRBlAAEmBjQAABBFAKR4nGNgZuJnnMDAysDCQBgwInPsgQBIKTBUMSv8t2BgYFZgOIGmXoGBAQCpUASrAAB4nGOKYGBgIoAZJxBWQywm1iyGExC1IAxigzC6OcjyjDoQDJNjYAAA8wIWE3icPY1BCoJgEIW/skXuXLRw0cKQChHLNAKjhV3DTXiNztAhPEqn6BJtvICMrx9p4L0H8w1vgDngSSv5zOWClzIk0GbJhpiElCMVV2oaHjzNdBGJ7EQycpEbd5HWER9skL7Wy9/2sU7doWuFNfz9Nxe1nDlRULKffuUc2JKN0KEYAAAAAAAAAAAAZwDVAR0BgwHiAi8CjgLxAzADdgPJBAgEcATTBTEFhgXoBk0GngbdBzcHhwfvCD4IfAjNCTcJcgnAChEKYQq7CxULVAu1DA8MRgxtDIIMrQy4DNQNAg1kDdUOAQ4tDlEOYg6PDrsPEQ8lDyV4nLVZO3ITQRDtlTFbGAGWhYqAgHIREOAqSrWlIiAgIHBAQEDiA+wBdBQfiAPMAXwUxy7mvz2jnpnuXVjXauyVPPP69e/NCK5AX93j6g+cQQ8v4Q1s4R28hw/wET7BZ/gCA3yFb/AdfsAtwPYw7Pb+Ptf3dTbus5v6jBlHfT0dx+5mfFr7V/tonTzSr6u7kX0BvBVZ8xN+AWwYiCXv05adPpEYZo17xbAt8U9A22f3jkAcHBCuNjoQRg6H59LY4Pf0VcjvUltypjnPCea1WXz+EfrXLPSzUdMoOQhhI+C1GrsDMwMzrGlcHEXEggz9hhm/1apIRvKiqggat7HipmhFEhd5rchjQ8+o4tyqySfAuslh4ne85rn3Ox7NZ1QEoT2q/MtD27WSPLmurN8Tz5H3lAs0g0i5UfmCxUoZ768ySouv5ackH/DV8teMSoijPORp4GYgfq9EvnVqPixSBLNzeF9Ajy2sWaKQBWppDl+yrWgqtFaNspDr/VVSR0Fj5WGfpcRwjyJV18jGKowVLs957ODYKnId48ZUEVHT+g+qLH+frH1l/oUFMFrCjpuSbsA6d3eYekpN+0q0I69S1xQXvt3yD2j+RqkW5RW3CpxUg7rOllUD4O1hJHiHwF4LoeJsaZZ0v1be57mPs61cAdJB3P1m8x14xVqnoFQdu1bqHCXdDeCiiq6JK2ZOjsVdNQQLuhJHJWfqS/mfNi6McCs8yyh2pJImwwqnqgJUEopq3nbKGnVR3YtYC/oKxxO6aRPS3IUAV/dT/HG97LhKXc2S+7PjkOpo1S43nS+ImhyXvQ6xU9o5UTmkaVO+8YXtHMerEz6xwueegXA1g4xQC3qBni+d1jT0fEB6nNW52ftSbqX0s3KT5R9rcwFvKVuz6Vvm85oix6clVezB/xKfv6hgZtXLCUkQCfTiyqz23KwGY7Za8bwD/Xs+qZnuzHQa/XPvZ0viU3/GYrJW9mZV3ZXuMitjP+oJvv0y9u4eCfI6Zw1YJH5NgGfuGVrrxD4/gZ/UpYfFSHki1l3q7u5H3JJo6p3qHWXfAZWqOqfyh/d8bMQh9ID4QCAuYCf+5ud3WzFRqil/j/o2Jeae/YMapN/+xAg41U42fnaHqV8V6mzJ+8V5t8R8YZ22oDXZbPIvy6okC7OaZQMg5JIK+FbGr7EqxGyZFnYWgOJZEKxINGSVG2rmTYHvtC4VSRefbeR5hfdmldOlcPYyRneJT5VM9TKetHXM1lFCWeqP/QVGoO4fAHicbYxLCoMwFAAnGiz90E2hdKfr7rxCL6B4AxchfRBcBARXPXufGmgWfZDHZDIEOPHBsI7hsu11Cg5627lUuiW2WVNxptZXY49qHjwTF1x5JS7V94lt1lTceXdRvExNL4sLg/NzGOOuNtNmTEdE8HomGv1RWHAEBt2eWWnUIq9+TfvffwGWsCPzAAAAeJx9jgduAzEQxI6+9Or03pze7VO9h/n/oT4QAYQGK85C3aT7/5SuY0LPCqussc4Gm2yxzQ677LHPlAMOOeKYE04545wLLrnimhtuueOeB2Y88sQzL7zyxjsffPLFNz/8MmfBQCCSyJR+mZNkabnK2C/LXBYySJAoekWv6BW9olf1ql7Vq3pVr+pVvapX9areqBfN0ZzMyU6yk+wkO8lOspPaH5wFic5iu9u8dX0L7a/62W52T3ZPcGds+1vWG3XC8Ae70jY1AAA=) format('woff');font-style:normal;font-weight:100 900;font-display:swap}
+:root{--bg:#0b1020;--bg2:#19243a;--bg3:#202e45;--bg4:#30425b;--border:#4a6671;--border2:#819790;--accent:#b9f4cf;--accent2:#ffe3a1;--text:#f4f2d8;--text2:#b4c7cc;--text3:#82959f;--nav-bg:#152335;--btn-bg:#213047}
+html,body{background:#080d17;font-family:Pixel,monospace}
+body{display:flex;align-items:center;justify-content:center}
+#app{width:min(100vw,56.25dvh)!important;max-width:none!important;height:min(100dvh,177.777778vw)!important;margin:0!important;container-type:inline-size;background-color:#11172d;background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNzAgNDgwIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPgo8cmVjdCB3aWR0aD0iMjcwIiBoZWlnaHQ9IjQ4MCIgZmlsbD0iIzExMTcyZCIvPgo8cmVjdCB5PSIxMjAiIHdpZHRoPSIyNzAiIGhlaWdodD0iMTUwIiBmaWxsPSIjMWIyMDNkIi8+PHJlY3QgeT0iMjcwIiB3aWR0aD0iMjcwIiBoZWlnaHQ9IjEzMCIgZmlsbD0iIzI5MjY0NCIvPjxyZWN0IHk9IjQwMCIgd2lkdGg9IjI3MCIgaGVpZ2h0PSI4MCIgZmlsbD0iIzQwMzM1NCIvPgo8ZyBmaWxsPSIjN2I4MmEwIj48cGF0aCBkPSJNMTkgMzFoMnYyaC0yeiBNNTQgNzJoMnYyaC0yeiBNMjMxIDMzaDJ2MmgtMnogTTIwMiAxMDJoMnYyaC0yeiBNMzIgMTUxaDJ2MmgtMnogTTI0NSAxNzhoMnYyaC0yeiBNMTcgMjMwaDJ2MmgtMnogTTIzMiAyODFoMnYyaC0yeiBNMTczIDQ0aDJ2MmgtMnogTTgwIDIxaDJ2MmgtMnogTTI1MiA4M2gydjJoLTJ6IE0yMSAzMTloMnYyaC0yeiIvPjwvZz4KPHBhdGggZmlsbD0iI2ZmZTRhZCIgZD0iTTIyMyA1N2gxMnYzaDZ2NmgzdjEyaC0zdjZoLTZ2M2gtMTJ2LTNoLTZ2LTZoLTNWNjZoM3YtNmg2eiIvPjxwYXRoIGZpbGw9IiNlMmJiOTIiIGQ9Ik0yMzUgNjBoNnY2aDN2MTJoLTN2NmgtNnYzaC0xMnYtM2g5di02aDZWNjZoLTN6Ii8+CjxwYXRoIGZpbGw9IiMzNDMzNTIiIGQ9Ik0wIDM3M2gxMnYtMTJoMTJ2LTE2aDEydi0xMGgxMnYtMTZoMTJ2MTZoMTJ2MTBoMTJ2MTZoMTJ2MTJoMTJ2MThoMTJ2LTExaDEydi0xNGgxMnYtMTJoMTJ2LTE3aDEydi0xNmgxMnYxNmgxMnYxN2gxMnYxMmgxMnYxNGgxMnYxMWgxMnYtMThoMTh2MTA3SDB6Ii8+CjxwYXRoIGZpbGw9IiMyNDJkNDciIGQ9Ik0wIDQwM2gxOHYtMTJoMTh2LTEyaDE4di0xMmgxOHYxMmgxOHYxMmgxOHYxOGgxOHYxMmgxOHYtMThoMTh2LTE2aDE4di0xMmgxOHYtMTZoMTh2MTZoMTh2MTJoMTh2MTZoMTh2NzdIMHoiLz4KPHBhdGggZmlsbD0iIzFjMjkzYiIgZD0iTTAgNDQ0aDI3MHYzNkgweiBNOCA0MThoNnYtOGg2di04aDZ2OGg2djhoNnY4SDh6IE00MCA0MzVoNnYtOGg2di04aDZ2OGg2djhoNnY4SDQweiBNMjIyIDQzMGg2di0xMGg2di0xMGg2di0xMGg2djEwaDZ2MTBoNnYxMGg2djhoLTQyeiIvPgo8ZyBmaWxsPSIjMmM0OTQ5Ij48cGF0aCBkPSJNMCA0NTZoMjcwdjNIMHogTTEwIDQ1MGgzdi0zaDN2NmgtNnogTTE5MiA0NTJoM3YtNWgzdjhoLTZ6Ii8+PC9nPjwvc3ZnPg==");background-size:100% 100%;isolation:isolate}
+#header-center{padding:6cqw 5cqw 0!important;gap:0;z-index:1}
+#wheel-icon{width:7cqw!important;height:7cqw!important;margin-bottom:2cqw!important;color:#b9f4cf}
+#wheel-icon svg{width:100%;height:100%}
+#champion-name-display{font:400 2.6cqw Pixel,monospace!important;color:#a6bdc5!important;min-height:4cqw!important;letter-spacing:1px!important;margin-bottom:2cqw!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#title-card{background:#19243c!important;background-clip:border-box!important;-webkit-background-clip:border-box!important;color:#b9f4cf!important;-webkit-text-fill-color:#b9f4cf!important;border:2px solid #536f79!important;border-radius:0!important;box-shadow:3px 3px 0 #080f21!important;font:400 3.8cqw Pixel,monospace!important;letter-spacing:1px!important;padding:2.2cqw 5cqw!important;margin-bottom:3cqw!important;filter:none!important}
+#result-text-svg{height:12cqw!important;filter:drop-shadow(3px 3px 0 #080c1b)!important}
+#result-text{fill:#ffe3a1;font-family:Pixel,monospace!important;font-weight:400!important}
+#wheel-area{padding:0!important}
+#canvas-container{filter:drop-shadow(0 6px 0 #080d1b)}
+#wheel-canvas{outline:none;touch-action:manipulation;cursor:pointer}
+#wheel-canvas:focus-visible{outline:2px dashed #ffe3a1;outline-offset:2px}
+#reward-panel{top:0!important;padding:1cqw 2cqw;background:#152236;color:#b9f4cf;font:400 2.2cqw Pixel,monospace;letter-spacing:0;white-space:nowrap;border:1px solid #445d6b;animation:none}
+#effect-preview{display:none!important}
+#bottom-controls{padding:3cqw 5cqw 3cqw!important;gap:2cqw!important;flex-shrink:0}
+.ctrl-btn-round,.ctrl-btn-edit{width:10cqw!important;height:10cqw!important;min-width:0;flex-shrink:0;border:2px solid #617d83!important;border-radius:0!important;background:#1e2d43!important;box-shadow:3px 3px 0 #080e1c;color:#c1ead7}
+.ctrl-btn-round svg,.ctrl-btn-edit svg{width:5cqw!important;height:5cqw!important;stroke:currentColor}
+.ctrl-btn-round[aria-pressed="false"]{border-color:#e48692!important;color:#e48692}
+#reset-btn{height:10cqw!important;border-radius:0!important;border:2px solid #617d83!important;background:#1e2d43!important;color:#e8efdf!important;box-shadow:3px 3px 0 #080e1c;font:400 2.7cqw Pixel,monospace!important;padding:0 1cqw!important}
+#bottom-nav{margin:0 5cqw 5cqw!important;border:2px solid #536b73!important;border-radius:0!important;box-shadow:3px 3px 0 #080e1c;background:rgba(20,34,51,.94)!important;flex-shrink:0}
+.nav-tab{padding:2.4cqw 0!important;gap:1.3cqw!important;color:#8599a7}
+.nav-tab.active{color:#b9f4cf!important;background:#263c46;border-radius:0!important}
+.nav-tab svg{width:5cqw!important;height:5cqw!important}
+.nav-label{font:400 2.4cqw Pixel,monospace!important}
+button{touch-action:manipulation}button:active:not(:disabled){transform:translateY(1px)}button:focus-visible,input:focus-visible{outline:2px solid #ffe3a1!important;outline-offset:3px}
+#name-overlay{position:absolute;inset:0;z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:7cqw;background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNzAgNDgwIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPgo8cmVjdCB3aWR0aD0iMjcwIiBoZWlnaHQ9IjQ4MCIgZmlsbD0iIzExMTcyZCIvPgo8cmVjdCB5PSIxMjAiIHdpZHRoPSIyNzAiIGhlaWdodD0iMTUwIiBmaWxsPSIjMWIyMDNkIi8+PHJlY3QgeT0iMjcwIiB3aWR0aD0iMjcwIiBoZWlnaHQ9IjEzMCIgZmlsbD0iIzI5MjY0NCIvPjxyZWN0IHk9IjQwMCIgd2lkdGg9IjI3MCIgaGVpZ2h0PSI4MCIgZmlsbD0iIzQwMzM1NCIvPgo8ZyBmaWxsPSIjN2I4MmEwIj48cGF0aCBkPSJNMTkgMzFoMnYyaC0yeiBNNTQgNzJoMnYyaC0yeiBNMjMxIDMzaDJ2MmgtMnogTTIwMiAxMDJoMnYyaC0yeiBNMzIgMTUxaDJ2MmgtMnogTTI0NSAxNzhoMnYyaC0yeiBNMTcgMjMwaDJ2MmgtMnogTTIzMiAyODFoMnYyaC0yeiBNMTczIDQ0aDJ2MmgtMnogTTgwIDIxaDJ2MmgtMnogTTI1MiA4M2gydjJoLTJ6IE0yMSAzMTloMnYyaC0yeiIvPjwvZz4KPHBhdGggZmlsbD0iI2ZmZTRhZCIgZD0iTTIyMyA1N2gxMnYzaDZ2NmgzdjEyaC0zdjZoLTZ2M2gtMTJ2LTNoLTZ2LTZoLTNWNjZoM3YtNmg2eiIvPjxwYXRoIGZpbGw9IiNlMmJiOTIiIGQ9Ik0yMzUgNjBoNnY2aDN2MTJoLTN2NmgtNnYzaC0xMnYtM2g5di02aDZWNjZoLTN6Ii8+CjxwYXRoIGZpbGw9IiMzNDMzNTIiIGQ9Ik0wIDM3M2gxMnYtMTJoMTJ2LTE2aDEydi0xMGgxMnYtMTZoMTJ2MTZoMTJ2MTBoMTJ2MTZoMTJ2MTJoMTJ2MThoMTJ2LTExaDEydi0xNGgxMnYtMTJoMTJ2LTE3aDEydi0xNmgxMnYxNmgxMnYxN2gxMnYxMmgxMnYxNGgxMnYxMWgxMnYtMThoMTh2MTA3SDB6Ii8+CjxwYXRoIGZpbGw9IiMyNDJkNDciIGQ9Ik0wIDQwM2gxOHYtMTJoMTh2LTEyaDE4di0xMmgxOHYxMmgxOHYxMmgxOHYxOGgxOHYxMmgxOHYtMThoMTh2LTE2aDE4di0xMmgxOHYtMTZoMTh2MTZoMTh2MTJoMTh2MTZoMTh2NzdIMHoiLz4KPHBhdGggZmlsbD0iIzFjMjkzYiIgZD0iTTAgNDQ0aDI3MHYzNkgweiBNOCA0MThoNnYtOGg2di04aDZ2OGg2djhoNnY4SDh6IE00MCA0MzVoNnYtOGg2di04aDZ2OGg2djhoNnY4SDQweiBNMjIyIDQzMGg2di0xMGg2di0xMGg2di0xMGg2djEwaDZ2MTBoNnYxMGg2djhoLTQyeiIvPgo8ZyBmaWxsPSIjMmM0OTQ5Ij48cGF0aCBkPSJNMCA0NTZoMjcwdjNIMHogTTEwIDQ1MGgzdi0zaDN2NmgtNnogTTE5MiA0NTJoM3YtNWgzdjhoLTZ6Ii8+PC9nPjwvc3ZnPg==");background-size:100% 100%}
+.retro-start-content{width:100%;display:flex;align-items:center;flex-direction:column;text-align:center}
+.retro-edition{font-size:2.6cqw;letter-spacing:2px;color:#b9f4cf;margin-bottom:5cqw}
+.retro-start-content h1{font-size:10cqw;font-weight:400;line-height:1.35;color:#ffe3a1;text-shadow:4px 4px 0 #79516d;margin:0 0 4cqw}
+.retro-start-sub{font-size:2.3cqw;line-height:1.8;color:#b7c7d0;margin-bottom:12cqw}
+.retro-start-content label{font-size:2.6cqw;color:#b9f4cf;margin-bottom:3cqw}
+#champion-input{width:80%;font:400 3.6cqw Pixel,monospace;background:#141f34;color:#fff1c8;border:2px solid #6e8790;border-radius:0;text-align:center;padding:4cqw 2cqw;box-shadow:4px 4px 0 #080f20;outline:none;caret-color:#ffe3a1}
+#champion-input::placeholder{color:#7e95a3}
+#start-btn{margin-top:6cqw;padding:4cqw 7cqw;border:2px solid #d3ffe2;border-radius:0;background:#3e6b61;color:#f3f5d6;font:400 3.5cqw Pixel,monospace;box-shadow:4px 4px 0 #080f20;cursor:pointer}
+.retro-start-hint{font:12px/1.7 system-ui,sans-serif;color:#b0c1c8;margin-top:6cqw}
+#end-card-panel{padding:8cqw!important;flex-direction:column;justify-content:center;gap:4cqw;min-height:0;overflow:auto}
+#end-card-panel h2{font:400 4cqw/1.5 Pixel,monospace;color:#ffe3a1;text-align:center}
+.retro-result-name{font:400 3cqw/1.5 Pixel,monospace;color:#b9f4cf;text-align:center;overflow-wrap:anywhere;margin-bottom:4cqw}
+.retro-result-row{display:flex;align-items:center;justify-content:space-between;gap:3cqw;padding-bottom:3cqw;border-bottom:2px solid #3d5266}
+.retro-result-row span{font:400 2.4cqw/1.5 Pixel,monospace;color:#adc0cb}
+.retro-result-row strong{font:400 3cqw/1.5 Pixel,monospace;color:#f4edce;text-align:right}
+#race-editor-panel{border-radius:0!important;background:#131f33!important;border:2px solid #617d83!important;color:#e3e8d4;box-shadow:5px 5px 0 #070e1a}
+#race-editor-panel button,#race-editor-panel input,#race-editor-panel select,.race-editor-row{border-radius:0!important}
+.race-editor-title{color:#b9f4cf;font-family:Pixel,monospace}
+.race-editor-subtitle,.race-editor-name,.race-editor-tier,.race-editor-color-line,.race-editor-status{font-family:system-ui,sans-serif}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.rp-stats,.stat-chip{animation:none!important}}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <!-- HEADER CENTER -->
+  <div id="header-center">
+    <div id="wheel-icon"></div>
+    <div id="champion-name-display" style="font-size:9px;font-family:Pixel,monospace;color:rgba(210,175,80,0.75);font-weight:400;letter-spacing:3px;text-transform:uppercase;min-height:16px;margin-bottom:2px;"></div>
+    <div id="title-card">Species</div>
+    <svg id="result-text-svg" viewBox="0 0 390 46" width="100%" height="46" style="display:block;overflow:visible;filter:drop-shadow(0 0 12px rgba(200,155,20,0.6));">
+      <defs>
+        <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#fffbe8"/>
+          <stop offset="18%"  stop-color="#f0d878"/>
+          <stop offset="40%"  stop-color="#c8980a"/>
+          <stop offset="55%"  stop-color="#e8c84a"/>
+          <stop offset="70%"  stop-color="#a07008"/>
+          <stop offset="85%"  stop-color="#d4a820"/>
+          <stop offset="100%" stop-color="#f5e080"/>
+        </linearGradient>
+      </defs>
+      <text id="result-text"
+        x="50%" y="36"
+        text-anchor="middle"
+        font-family="Pixel, monospace"
+        font-weight="900"
+        font-size="38"
+        letter-spacing="3"
+        fill="url(#goldGrad)">???</text>
+    </svg>
+  </div>
+
+  <!-- END CARD — sits in header area above wheel -->
+  <div id="end-card-panel" style="display:none;padding:0 10px;flex-shrink:0;"></div>
+
+  <!-- WHEEL -->
+  <div id="wheel-area">
+    <div id="canvas-container">
+      <canvas id="wheel-spin-canvas" aria-hidden="true"></canvas>
+      <canvas id="wheel-canvas" tabindex="0" role="button" aria-label="Rad drehen oder zum nächsten Rad wechseln"></canvas>
+    </div>
+    <div id="effect-preview" style="display:none;position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:29;pointer-events:none;width:calc(100% - 16px);max-width:300px;display:none;flex-direction:column;gap:4px;"></div>
+    <div id="reward-panel" style="display:none;"></div>
+  </div>
+
+
+  <!-- Same name-entry screen, now in the retro skin. -->
+  <div id="name-overlay" style="display:flex;">
+    <div class="retro-start-content">
+      <div class="retro-edition">8-BIT EDITION</div>
+      <h1>WHEEL<br>OF ORIGIN</h1>
+      <p class="retro-start-sub">PRESS START. MEET YOUR FATE.</p>
+      <label for="champion-input">PLAYER NAME</label>
+      <input id="champion-input" type="text" maxlength="32" placeholder="@username" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="start-btn" type="button" onclick="startWithName()">PRESS START</button>
+      <p class="retro-start-hint">Name eingeben. Danach das Rad antippen.</p>
+    </div>
+  </div>
+
+  <!-- BOTTOM CONTROLS -->
+  <div id="bottom-controls">
+    <button class="ctrl-btn-round" type="button" aria-label="Sound ein- oder ausschalten" aria-pressed="true" title="Sound: an">
+      <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none" style="fill:#888"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" style="fill:#888"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" style="fill:#888"/></svg></button>
+    <button id="race-editor-btn" class="ctrl-btn-edit" type="button" aria-label="Wheel-Farben und Reihenfolge bearbeiten" title="Wheel-Farben und Reihenfolge">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.6-3.2 2 2 0 0 1 1.6-3.2H18A3 3 0 0 0 21 11.6 9 9 0 0 0 12 3Z"/>
+        <circle cx="7.5" cy="11" r="1"/>
+        <circle cx="10" cy="7.5" r="1"/>
+        <circle cx="14.5" cy="7.5" r="1"/>
+      </svg>
+    </button>
+    <button id="reset-btn">Rad zurücksetzen</button>
+    <button id="reroll-btn" class="ctrl-btn-edit" type="button" disabled aria-label="Letzten Spin wiederholen" title="Letzten Spin wiederholen">
+      <svg viewBox="0 0 24 24">
+        <path d="M9 7 4 12l5 5"/>
+        <path d="M4 12h9a6 6 0 0 1 6 6"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <div class="nav-tab active" onclick="setTab(this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>
+      <span class="nav-label">Rad</span>
+    </div>
+    <div class="nav-tab" onclick="setTab(this)">
+      <svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+      <span class="nav-label">Finger</span>
+    </div>
+    <div class="nav-tab" onclick="setTab(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h1v6H9M13 9h2a2 2 0 0 1 0 4h-2v-4M13 13h2.5"/></svg>
+      <span class="nav-label">Zahl</span>
+    </div>
+    <div class="nav-tab" onclick="setTab(this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5C9.5 8.1 10.6 7 12 7s2.5 1.1 2.5 2.5c0 2.5-5 3-5 5.5 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5"/></svg>
+      <span class="nav-label">Münze</span>
+    </div>
+  </div>
+
+  <!-- RACE / PROFESSION COLOR + ORDER EDITOR -->
+  <div id="race-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="race-editor-heading">
+    <div id="race-editor-panel">
+      <div class="race-editor-header">
+        <div>
+          <div id="race-editor-heading" class="race-editor-title">WHEEL EDITOR</div>
+          <div class="race-editor-subtitle">Farben und Reihenfolge werden automatisch auf diesem Gerät gespeichert.</div>
+        </div>
+        <button id="race-editor-close" class="race-editor-close" type="button" aria-label="Editor schließen">×</button>
+      </div>
+
+      <div class="race-editor-toolbar">
+        <div class="race-editor-toolbar-label">Wheel</div>
+        <div class="race-editor-wheel-tabs">
+          <button class="race-editor-wheel-tab active" type="button" data-editor-wheel="Race">Species</button>
+          <button class="race-editor-wheel-tab" type="button" data-editor-wheel="Profession">Role</button>
+        </div>
+        <div class="race-editor-toolbar-label layout-label">Layout</div>
+        <div class="race-editor-presets">
+          <button class="race-editor-preset" type="button" data-layout-mode="mixed">Mixed</button>
+          <button class="race-editor-preset" type="button" data-layout-mode="tier">Tier Groups</button>
+          <button class="race-editor-preset" type="button" data-layout-mode="custom">Custom</button>
+        </div>
+      </div>
+
+      <div id="race-editor-list" aria-label="Wheel-Segmente"></div>
+
+      <div class="race-editor-footer">
+        <input id="race-editor-import-input" type="file" accept="application/json,.json" hidden>
+        <div class="race-editor-actions">
+          <button id="race-editor-export" class="race-editor-action" type="button">Export</button>
+          <button id="race-editor-import" class="race-editor-action" type="button">Import</button>
+          <button id="race-editor-reset-all" class="race-editor-action" type="button">Reset All</button>
+          <button id="race-editor-done" class="race-editor-action primary" type="button">Done</button>
+        </div>
+        <div id="race-editor-status" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- END CARD OVERLAY (unused - card now in header) -->
+
+</div>
+
+<script>
+// ── WHEEL_ENTRIES DATA (from 01_Core_Generator_Races_Complete.xlsx) ──────────
+// CONTENT CONFIG: edit these names or add weights later. No role/species stat modifiers are active.
+const RETRO_WHEELS = {
+  "Race": {
+    "label": "Species",
+    "entries": [
+      "Human",
+      "Goblin",
+      "Elf",
+      "Dwarf",
+      "Slime",
+      "Spirit",
+      "Skeleton",
+      "Shroomkin",
+      "Treant",
+      "Sprout",
+      "Robot",
+      "Mimic"
+    ]
+  },
+  "Profession": {
+    "label": "Role",
+    "entries": [
+      "Farmer",
+      "Merchant",
+      "Guard",
+      "Mage",
+      "Healer",
+      "Fisher",
+      "Miner",
+      "Bard",
+      "Cook",
+      "Thief",
+      "Hermit",
+      "Boss"
+    ]
+  },
+  "Spawn": {
+    "label": "Spawn",
+    "entries": [
+      "Cozy Village",
+      "Royal Garden",
+      "Green Forest",
+      "Sunny Beach",
+      "Sky Island",
+      "Crystal Cave",
+      "Old Ruins",
+      "Graveyard",
+      "Deep Swamp",
+      "Frozen Peak",
+      "Lava Pit",
+      "Boss Room"
+    ]
+  },
+  "HP": {
+    "label": "HP",
+    "entries": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10"
+    ]
+  },
+  "SpecialTrait": {
+    "label": "Special Trait",
+    "entries": [
+      "Lucky",
+      "Tiny",
+      "Giant",
+      "Glowing",
+      "Invisible",
+      "Fireproof",
+      "Night Vision",
+      "Double Jump",
+      "Regrowth",
+      "Shapeshift",
+      "Golden",
+      "Glitched"
+    ]
+  },
+  "Trouble": {
+    "label": "Trouble",
+    "entries": [
+      "None",
+      "Always Lost",
+      "Bad Luck",
+      "Wanted",
+      "Sleepy",
+      "Broke",
+      "Cursed",
+      "Afraid",
+      "Hungry",
+      "Clumsy",
+      "Noisy",
+      "One Day Left"
+    ]
+  }
+};
+// HP is currently a base roll, not a cap on future total HP. Additional sources
+// and STR are deliberately not assigned game rules in this version.
+const RETRO_HP = { min:0, max:10 };
+const RETRO_PALETTE = ['#7652b5','#267f91','#b24b85','#48734f','#b46b42','#5469b0','#8a589c','#397777','#a25a64','#596b3e','#866499','#39719b'];
+const WHEEL_ENTRIES = Object.entries(RETRO_WHEELS).flatMap(([wheelID, config], wheelIndex) =>
+  config.entries.map((displayName, index) => ({
+    id:10000 + wheelIndex * 100 + index, wheelID, parentWheel:'Any', parentResult:'Any',
+    displayName, tier:'Common', baseWeight:1,
+    STR:0, IQ:0, SPD:0, DUR:0, PM:0, DEF:0,
+    ...(wheelID === 'HP' ? {HP:Number(displayName)} : {})
+  }))
+);
+
+// ── TIER COLOR MAP ────────────────────────────────────────────────
+const TIER_COLORS = {
+  None:      { bg: '#292936', text: '#aaaabc' },
+  // Vibrant MMO palette: clearer on a phone screen without becoming neon.
+  Trash:     { bg: '#858995', text: '#ffffff' },
+  Common:    { bg: '#6e7480', text: '#ffffff' },
+  Uncommon:  { bg: '#218a45', text: '#effff1' },
+  Rare:      { bg: '#245fc0', text: '#edf5ff' },
+  Epic:      { bg: '#7a2fb0', text: '#faedff' },
+  Legendary: { bg: '#c28a12', text: '#fff5cf' },
+  OP:        { bg: '#b82435', text: '#ffecef' },
+  Mythic:    { bg: '#b82435', text: '#ffecef' },
+};
+
+// ── STAT WHEEL COLOR PALETTES (hell = schlechter, dunkel = besser) ──
+const STAT_WHEEL_COLORS = {
+  // hell = niedriger Wert, dunkel = hoher Wert. Jeder Stat hat seine
+  // eigene Farbfamilie - die bleibt unabhaengig von den Stufenfarben.
+  STR: {   // rot
+    Common:    { bg: '#ffcccc', text: '#550000' },
+    Uncommon:  { bg: '#ff8f8f', text: '#4a0000' },
+    Rare:      { bg: '#dd3333', text: '#ffe0e0' },
+    Epic:      { bg: '#991111', text: '#ffcccc' },
+    Legendary: { bg: '#660000', text: '#ffaaaa' },
+    Mythic:    { bg: '#330000', text: '#ff8888' },
+    None:      { bg: '#ffcccc', text: '#550000' },
+  },
+  IQ: {    // blau
+    Common:    { bg: '#cce0ff', text: '#001a44' },
+    Uncommon:  { bg: '#88b4ff', text: '#001636' },
+    Rare:      { bg: '#2255cc', text: '#dce9ff' },
+    Epic:      { bg: '#0d339e', text: '#cce0ff' },
+    Legendary: { bg: '#071f6b', text: '#aaccff' },
+    Mythic:    { bg: '#030d33', text: '#6699ff' },
+    None:      { bg: '#cce0ff', text: '#001a44' },
+  },
+  Speed: { // gelb
+    Common:    { bg: '#fffacc', text: '#443300' },
+    Uncommon:  { bg: '#ffe680', text: '#3d2e00' },
+    Rare:      { bg: '#e6b800', text: '#3d2e00' },
+    Epic:      { bg: '#a67c00', text: '#fff4cc' },
+    Legendary: { bg: '#664d00', text: '#ffe066' },
+    Mythic:    { bg: '#332600', text: '#ffcc00' },
+    None:      { bg: '#fffacc', text: '#443300' },
+  },
+  Dura: {  // gruen
+    Common:    { bg: '#ccffcc', text: '#003300' },
+    Uncommon:  { bg: '#85dd85', text: '#002b00' },
+    Rare:      { bg: '#229922', text: '#e0ffe0' },
+    Epic:      { bg: '#0d6e0d', text: '#ccffcc' },
+    Legendary: { bg: '#064706', text: '#aaffaa' },
+    Mythic:    { bg: '#022002', text: '#55ee55' },
+    None:      { bg: '#ccffcc', text: '#003300' },
+  },
+};
+
+// ── PROFESSION & COMPANION: flat decorative palettes (no value hierarchy) ──
+const PROFESSION_COLORS = {
+  Trash:    { bg: '#687266', text: '#efffec' },
+  Common:   { bg: '#626975', text: '#f4f6fb' },
+  Uncommon: { bg: '#247d4a', text: '#edfff3' },
+  Rare:     { bg: '#2859aa', text: '#edf5ff' },
+  Epic:     { bg: '#7135a0', text: '#faedff' },
+  Legendary:{ bg: '#a97814', text: '#fff2c5' },
+  OP:       { bg: '#922735', text: '#ffe8ec' },
+  Mythic:   { bg: '#922735', text: '#ffe8ec' },
+  None:     { bg: '#353543', text: '#b8b8cc' },
+};
+
+const COMPANION_COLORS = {
+  None:     { bg: '#304030', text: '#a7c8a7' },
+  Trash:    { bg: '#735b31', text: '#f6dfad' },
+  Common:   { bg: '#61656e', text: '#f4f4f6' },
+  Uncommon: { bg: '#287c43', text: '#edfff0' },
+  Rare:     { bg: '#2958a3', text: '#edf4ff' },
+  Epic:     { bg: '#71349c', text: '#faecff' },
+  Legendary:{ bg: '#a97914', text: '#fff3c7' },
+  OP:       { bg: '#952634', text: '#ffe7eb' },
+  Mythic:   { bg: '#952634', text: '#ffe7eb' },
+};
+
+// ── RACE: Trash=grau, Common=grünlich, dann normal Tier-Skala ──
+const RACE_COLORS = {
+  None:      { bg: '#292936', text: '#aaaabc' },
+  Trash:     { bg: '#858995', text: '#ffffff' },
+  Common:    { bg: '#747a85', text: '#ffffff' },
+  Uncommon:  { bg: '#258d49', text: '#effff2' },
+  Rare:      { bg: '#2862bd', text: '#eef6ff' },
+  Epic:      { bg: '#7b34ad', text: '#faedff' },
+  Legendary: { bg: '#bd8615', text: '#fff4ca' },
+  OP:        { bg: '#b72535', text: '#ffecef' },
+  Mythic:    { bg: '#b72535', text: '#ffecef' },
+};
+
+// Race/Subrace gradient anchors: brighter and more saturated, still dark
+// enough for crisp white labels on a phone recording.
+const RACE_GRAD = {
+  None:      ['#353545','#242430'],
+  Trash:     ['#9a9eaa','#60646e'],
+  Common:    ['#949aa5','#555b66'],
+  Uncommon:  ['#43b967','#176c37'],
+  Rare:      ['#3f7ee0','#174393'],
+  Epic:      ['#a14dd2','#501b7a'],
+  Legendary: ['#e0ad2e','#8e5d08'],
+  OP:        ['#df4152','#77131f'],
+  Mythic:    ['#df4152','#77131f'],
+};
+
+// Exact rarity palette exported from the final Season 2 Race design. Wheels
+// that use the same MMO rarity language reuse these stops within each tier;
+// their entries, weights and ordering remain untouched.
+const STANDARD_RARITY_GRADIENT_WHEELS = new Set([
+  'Race', 'Subrace', 'Profession', 'Companion',
+  'Weapon', 'Enchantment', 'Armor', 'Power'
+]);
+const STANDARD_RARITY_GRADIENTS = {
+  Common: [
+    '#474747', '#5C5C5C', '#858585', '#ADADAD',
+    '#C2C2C2', '#D6D6D6', '#EBEBEB'
+  ],
+  Uncommon: [
+    '#003006', '#003200', '#003904', '#004C17',
+    '#0F5700', '#263E0F', '#38571A', '#4E7A27',
+    '#669D34', '#76BB40', '#96D35F', '#B1DD8B'
+  ],
+  Rare: [
+    '#00374A', '#00374A', '#004D65', '#004D65',
+    '#016E8F', '#008CB4', '#008CB4', '#01C7FC',
+    '#52D6FC', '#93E3FD', '#93E3FD'
+  ],
+  Epic: ['#560087', '#7A219E', '#BE38F3', '#E292FE', '#E292FE'],
+  Legendary: ['#BD5500', '#C98615', '#F2A300', '#F8B700', '#F5C200', '#FEFF6E'],
+  Mythic: ['#5C0701', '#551029', '#791A3D'],
+  OP: ['#5C0701', '#551029', '#791A3D'],
+};
+
+function _raceHexMix(a, b, f) {
+  const ar=parseInt(a.slice(1,3),16), ag=parseInt(a.slice(3,5),16), ab=parseInt(a.slice(5,7),16);
+  const br=parseInt(b.slice(1,3),16), bg=parseInt(b.slice(3,5),16), bb=parseInt(b.slice(5,7),16);
+  const r=Math.round(ar+(br-ar)*f), g=Math.round(ag+(bg-ag)*f), bl=Math.round(ab+(bb-ab)*f);
+  return '#' + [r,g,bl].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function standardRarityGradientColor(tier, idxInTier, tierCount) {
+  const stops = STANDARD_RARITY_GRADIENTS[tier];
+  if (!stops || stops.length === 0) return null;
+  if (stops.length === 1 || tierCount <= 1) return { bg:stops[0], text:'#ffffff' };
+
+  const f = Math.max(0, Math.min(1, idxInTier / (tierCount - 1)));
+  const scaled = f * (stops.length - 1);
+  const nearest = Math.round(scaled);
+  if (Math.abs(scaled - nearest) < 1e-10) {
+    return { bg:stops[nearest], text:'#ffffff' };
+  }
+  const left = Math.floor(scaled);
+  const right = Math.min(stops.length - 1, left + 1);
+  return {
+    bg:_raceHexMix(stops[left], stops[right], scaled - left),
+    text:'#ffffff'
+  };
+}
+
+// Returns a shade for a race segment given its index within its tier group
+function raceGradientColor(tier, idxInTier, tierCount) {
+  const standard = standardRarityGradientColor(tier, idxInTier, tierCount);
+  if (standard) return standard;
+  const anchors = RACE_GRAD[tier] || RACE_GRAD.Common;
+  const f = tierCount <= 1 ? 0 : idxInTier / (tierCount - 1);
+  const base = RACE_COLORS[tier] || RACE_COLORS.Common;
+  return { bg: _raceHexMix(anchors[0], anchors[1], f), text: base.text };
+}
+
+const STAT_WHEELS = new Set(['STR', 'IQ', 'Speed', 'Dura']);
+
+
+// ── SEGEN: weiss -> gelb -> gold ──────────────────────────────────
+const BLESSING_COLORS = {
+  Common:    { bg: '#f2f0e6', text: '#4a4430' },
+  Uncommon:  { bg: '#f0e6b4', text: '#4a4018' },
+  Rare:      { bg: '#e8d267', text: '#3a3008' },
+  Epic:      { bg: '#d8b02a', text: '#2e2400' },
+  Legendary: { bg: '#b88a10', text: '#fff4c8' },
+  Mythic:    { bg: '#8f6300', text: '#ffe89a' },
+  None:      { bg: '#5c5648', text: '#cfc8b4' },
+};
+
+// ── FLUECHE: gedaempftes Violett -> tiefes Dunkellila ─────────────
+const CURSE_COLORS = {
+  Common:    { bg: '#6a4a8a', text: '#e8d8f8' },
+  Uncommon:  { bg: '#5a3a7a', text: '#e0ccf4' },
+  Rare:      { bg: '#4a2a6a', text: '#d8c0f0' },
+  Epic:      { bg: '#3a1c56', text: '#cdb0ec' },
+  Legendary: { bg: '#2a1042', text: '#c0a0e8' },
+  Mythic:    { bg: '#1a0630', text: '#b088e0' },
+  None:      { bg: '#2a2a3a', text: '#9999aa' },
+};
+
+function getSegmentColor(entry, wheelID, segIndex, totalSegs) {
+  const bg = RETRO_PALETTE[entry.id % 100 % RETRO_PALETTE.length];
+  return {bg,text:getRaceEditorContrastText(bg)};
+}
+
+// Shift hex color lightness by amount (positive = lighter, negative = darker)
+function hexShiftL(hex, amount) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const clamp = v => Math.max(0, Math.min(255, Math.round(v + amount)));
+  return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+const WHEEL_ORDER = ['Race','Profession','Spawn','HP','SpecialTrait','Trouble'];
+let genStep = 0;
+let genResults = {};   // { Race: entry, Subrace: entry, ... }
+let genStats  = { STR: 0, IQ: 0, SPD: 0, DUR: 0, PM: 0, DEF: 0 };
+let generatorActive = false;
+let enchantmentsRolled = [];   // array of entry objects
+let enchantmentSlotsLeft = 0; // how many enchantment spins remain
+let triggeredCombos = [];     // array of {name, delta} objects
+let lastSpinCheckpoint = null; // only the immediately completed spin can be repeated
+
+function setRerollButtonEnabled(enabled) {
+  const btn = document.getElementById('reroll-btn');
+  if (!btn) return;
+  btn.disabled = !enabled;
+  btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+}
+
+function clearLastSpinCheckpoint() {
+  lastSpinCheckpoint = null;
+  setRerollButtonEnabled(false);
+}
+
+// A tiny state-only checkpoint. It is created once when a spin starts and
+// does no work at all during the animation.
+function captureLastSpinCheckpoint() {
+  lastSpinCheckpoint = {
+    genStep,
+    genResults: { ...genResults },
+    genStats: { ...genStats },
+    enchantmentsRolled: [...enchantmentsRolled],
+    enchantmentSlotsLeft,
+    triggeredCombos: triggeredCombos.map(combo => ({
+      ...combo,
+      delta: { ...(combo.delta || {}) },
+    })),
+    s2Combo: {
+      wheelUp: { ...(s2Combo.wheelUp || {}) },
+      guard: [...(s2Combo.guard || [])],
+      extraSlot: Number(s2Combo.extraSlot || 0),
+    },
+    s2FlatBonus: { ...s2FlatBonus },
+    s2DiceClass: s2DiceClass ? { ...s2DiceClass } : null,
+    lastComboPanel,
+  };
+  setRerollButtonEnabled(false);
+}
+
+function restoreLastSpinCheckpoint() {
+  const checkpoint = lastSpinCheckpoint;
+  if (!checkpoint) return false;
+
+  genStep = checkpoint.genStep;
+  genResults = { ...checkpoint.genResults };
+  genStats = { ...checkpoint.genStats };
+  enchantmentsRolled = [...checkpoint.enchantmentsRolled];
+  enchantmentSlotsLeft = checkpoint.enchantmentSlotsLeft;
+  triggeredCombos = checkpoint.triggeredCombos.map(combo => ({
+    ...combo,
+    delta: { ...(combo.delta || {}) },
+  }));
+  s2Combo = {
+    wheelUp: { ...(checkpoint.s2Combo.wheelUp || {}) },
+    guard: [...(checkpoint.s2Combo.guard || [])],
+    extraSlot: Number(checkpoint.s2Combo.extraSlot || 0),
+  };
+  s2FlatBonus = { ...checkpoint.s2FlatBonus };
+  s2DiceClass = checkpoint.s2DiceClass ? { ...checkpoint.s2DiceClass } : null;
+  lastComboPanel = checkpoint.lastComboPanel || '';
+  pendingAdvance = false;
+  lastSpinCheckpoint = null;
+  setRerollButtonEnabled(false);
+  return true;
+}
+
+// ── WEIGHTED RANDOM ───────────────────────────────────────────────
+function weightedRandom(entries) {
+  const total = entries.reduce((s, e) => s + e.baseWeight, 0);
+  let r = Math.random() * total;
+  for (const e of entries) {
+    r -= e.baseWeight;
+    if (r <= 0) return e;
+  }
+  return entries[entries.length - 1];
+}
+
+// ── GENERATOR EFFECTS ─────────────────────────────────────────────
+
+// ── EFFECT PREVIEW ────────────────────────────────────────────────
+const EFFECT_PREVIEWS = {
+  GuaranteedSlotWeapon: { source:'Blacksmith',       name:'Guaranteed Slot Weapon',  text:'Only slotted weapons on wheel.' },
+  GuaranteedCompanion:  { source:'Tamer',            name:'Guaranteed Companion',     text:'Nothing removed from wheel.' },
+  NoTrashArmor:         { source:'Knight',           name:'No Trash Armor',           text:'Trash armor removed.' },
+  BetterEnchantments:   { source:'Alchemist',        name:'Better Enchantments',      text:'Rare+ enchants boosted.' },
+  MagicBoost:           { source:'Mage',             name:'Magic Boost',              text:'Stronger powers more likely.' },
+  TrashMagnet:          { source:'Jinxer',           name:'Trash Magnet',             text:'Bad results more likely. OP still possible.' },
+  UnderdogLuck:         { source:'Underdog',         name:'Underdog Luck',            text:'High-tier hits boosted.' },
+  BossLuck:             { source:'Final Boss',       name:'Boss Luck',                text:'Elite results more likely.' },
+  EliteGuarantee:       { source:'OP Race/Profession', name:'Elite Guarantee',        text:'Empty results removed.' },
+  GamblerChaos:         { source:'Gambler',          name:'Gambler Chaos',            text:'Wild swings: trash or epic.' },
+  JokerLuck:            { source:'Joker',            name:'Joker Luck',               text:'Higher odds rise.' },
+  BlessedFate:          { source:'Blessed',          name:'Blessed Fate',             text:'Blessings are much more likely.' },
+  CurseMagnet:          { source:'Cursed One',       name:'Curse Magnet',             text:'Curses and dark powers are boosted.' },
+  RoyalPrivilege:       { source:'Royal Heir',       name:'Royal Privilege',          text:'Royal gear and blessings are boosted.' },
+  RuneSense:            { source:'Rune Hunter',      name:'Rune Sense',               text:'Enchantments and powers are boosted.' },
+  BeastBond:            { source:'Beast Whisperer',  name:'Beast Bond',               text:'Guaranteed companion with better beast odds.' },
+  ReliableMount:        { source:'Stablemaster',     name:'Reliable Mount',           text:'Guaranteed companion.' },
+  BrutalArsenal:        { source:'Berserker',        name:'Brutal Arsenal',           text:'Brutal weapons and powers are boosted.' },
+  DefensiveStance:      { source:'Shield Sentinel',  name:'Defensive Stance',         text:'Armor and durability are boosted.' },
+  PrecisionGear:        { source:'Ranger',           name:'Precision Gear',           text:'Ranged weapons, companions and speed are boosted.' },
+  ChampionGear:         { source:'Champion',         name:'Champion Gear',            text:'Weapon and armor are guaranteed.' },
+  Witchcraft:           { source:'Witch',            name:'Witchcraft',               text:'Magic powers and curses are boosted.' },
+  LootSense:            { source:'Thief',            name:'Loot Sense',               text:'Weapon and enchantment odds are boosted.' },
+  GraveLoot:            { source:'Grave Robber',     name:'Grave Loot',               text:'Dark and cursed loot is boosted.' },
+  PeasantLife:          { source:'Peasant/NPC',      name:'Peasant Life',             text:'Empty and weak results are more likely.' },
+  TargetLock:           { source:'Bounty Hunter',    name:'Target Lock',              text:'Combat tools are boosted.' },
+  LoyalService:         { source:'Butler',           name:'Loyal Service',            text:'Support and defense odds are slightly better.' },
+  WardenControl:        { source:'Dungeon Warden',   name:'Warden Control',           text:'Dungeon gear and durability are boosted.' },
+  FoolishLuck:          { source:'Fool',             name:'Foolish Luck',             text:'Bad odds, but miracle highrolls are possible.' },
+  LostFate:             { source:'The Lost',         name:'Lost Fate',                text:'More misses, but also more miracle hits.' },
+  AdaptiveBody:         { source:'Shapeshifter',     name:'Adaptive Body',            text:'Power and survival odds are improved.' },
+  HeavyHands:           { source:'Lumberjack',       name:'Heavy Hands',              text:'Strength up, speed down.' },
+  ShackledStart:        { source:'Prisoner',         name:'Shackled Start',           text:'Worse gear and speed, slight survival upside.' },
+  DrunkenChaos:         { source:'Drunkard',         name:'Drunken Chaos',            text:'Dumb luck or disaster.' },
+  Bloodthirst:          { source:'Murderer',         name:'Bloodthirst',              text:'Lethal weapons and dark powers are boosted.' },
+  NPCBackground:        { source:'NPC',              name:'Ordinary Life',            text:'Empty and weak results are more likely.' },
+};
+
+// Season 2: kein Hinweiskasten mehr vor dem Spin.
+const COMBO_HINTS = [];
+function renderEffectPreview(wheelID) {
+  document.getElementById('effect-preview').style.display = 'none';
+}
+
+
+const EFFECT_DISPLAY = {
+  GuaranteedSlotWeapon: 'Guaranteed Slot Weapon',
+  GuaranteedCompanion:  'Guaranteed Companion',
+  NoTrashArmor:         'No Trash Armor',
+  BetterEnchantments:   'Better Enchantments',
+  MagicBoost:           'Magic Boost',
+  TrashMagnet:          'Trash Magnet',
+  UnderdogLuck:         'Underdog Luck',
+  BossLuck:             'Boss Luck',
+  EliteGuarantee:       'Elite Guarantee',
+  GamblerChaos:         'Gambler Chaos',
+  JokerLuck:            'Joker Luck',
+  BlessedFate:          'Blessed Fate',
+  CurseMagnet:          'Curse Magnet',
+  RoyalPrivilege:       'Royal Privilege',
+  RuneSense:            'Rune Sense',
+  BeastBond:            'Beast Bond',
+  ReliableMount:        'Reliable Mount',
+  BrutalArsenal:        'Brutal Arsenal',
+  DefensiveStance:      'Defensive Stance',
+  PrecisionGear:        'Precision Gear',
+  ChampionGear:         'Champion Gear',
+  Witchcraft:           'Witchcraft',
+  LootSense:            'Loot Sense',
+  GraveLoot:            'Grave Loot',
+  PeasantLife:          'Peasant Life',
+  TargetLock:           'Target Lock',
+  LoyalService:         'Loyal Service',
+  WardenControl:        'Warden Control',
+  FoolishLuck:          'Foolish Luck',
+  LostFate:             'Lost Fate',
+  AdaptiveBody:         'Adaptive Body',
+  HeavyHands:           'Heavy Hands',
+  ShackledStart:        'Shackled Start',
+  DrunkenChaos:         'Drunken Chaos',
+  Bloodthirst:          'Bloodthirst',
+  NPCBackground:        'Ordinary Life',
+};
+
+// ── EFFECT PREVIEW ────────────────────────────────────────────────
+
+
+function getActiveGeneratorEffects() {
+  // Season 2: ersetzt durch das Bausteinsystem (S2_PROF_EFFECTS).
+  return [];
+}
+
+function getActiveEffectsForWheel(wheelID) {
+  const all = getActiveGeneratorEffects();
+  const W = wheelID;
+  return all.filter(eff => {
+    switch(eff) {
+      case 'GuaranteedSlotWeapon': return W === 'Weapon';
+      case 'GuaranteedCompanion':  return W === 'Companion';
+      case 'NoTrashArmor':         return W === 'Armor';
+      case 'BetterEnchantments':   return W === 'Enchantment';
+      case 'MagicBoost':           return W === 'Power';
+      case 'TrashMagnet':          return ['Companion','Weapon','Enchantment','Armor','Power','BlessingCurse'].includes(W);
+      case 'UnderdogLuck':         return ['Weapon','Power','BlessingCurse'].includes(W);
+      case 'BossLuck':             return ['Weapon','Armor','Power','BlessingCurse'].includes(W);
+      case 'EliteGuarantee':       return ['Companion','Weapon','Armor','Power'].includes(W);
+      case 'EmptyMagnet':          return ['Companion','Weapon','Armor','Power'].includes(W);
+      case 'GamblerChaos':         return ['Companion','Weapon','Enchantment','Armor','Power','BlessingCurse'].includes(W);
+      case 'JokerLuck':            return ['Companion','Weapon','Enchantment','Armor','Power','BlessingCurse'].includes(W);
+      case 'BlessedFate':          return W === 'BlessingCurse';
+      case 'CurseMagnet':          return ['BlessingCurse','Power'].includes(W);
+      case 'RoyalPrivilege':       return ['Armor','Weapon','BlessingCurse'].includes(W);
+      case 'RuneSense':            return ['Enchantment','Power'].includes(W);
+      case 'BeastBond':            return W === 'Companion';
+      case 'ReliableMount':        return W === 'Companion';
+      case 'BrutalArsenal':        return ['Weapon','Power'].includes(W);
+      case 'DefensiveStance':      return ['Armor','Dura'].includes(W);
+      case 'PrecisionGear':        return ['Weapon','Companion','Speed'].includes(W);
+      case 'ChampionGear':         return ['Weapon','Armor'].includes(W);
+      case 'Witchcraft':           return ['Power','BlessingCurse'].includes(W);
+      case 'LootSense':            return ['Weapon','Enchantment'].includes(W);
+      case 'GraveLoot':            return ['Weapon','Armor','BlessingCurse'].includes(W);
+      case 'PeasantLife':          return ['Companion','Weapon','Armor','Power'].includes(W);
+      case 'TargetLock':           return ['Weapon','Companion'].includes(W);
+      case 'LoyalService':         return ['Armor','Companion'].includes(W);
+      case 'WardenControl':        return ['Armor','Weapon','Dura'].includes(W);
+      case 'FoolishLuck':          return ['Companion','Weapon','Power','BlessingCurse'].includes(W);
+      case 'LostFate':             return ['Companion','Weapon','Armor','Power','BlessingCurse'].includes(W);
+      case 'AdaptiveBody':         return ['Power','Armor','Speed','Dura'].includes(W);
+      case 'HeavyHands':           return ['Weapon','STR','Speed'].includes(W);
+      case 'ShackledStart':        return ['Weapon','Armor','Speed','Dura'].includes(W);
+      case 'DrunkenChaos':         return ['STR','IQ','Speed','Weapon','BlessingCurse'].includes(W);
+      case 'Bloodthirst':          return ['Weapon','Power'].includes(W);
+      case 'NPCBackground':        return ['Companion','Weapon','Armor','Power'].includes(W);
+      default: return false;
+    }
+  });
+}
+
+const RACE_LUCK_WHEELS = new Set([
+  'Subrace','Profession','STR','IQ','Speed','Dura',
+  'Companion','Weapon','Enchantment','Armor',
+  'Power','BlessingCurse'
+]);
+
+function getRaceTierLuckProfile(tier) {
+  // Season 2: auf 35 % der Season-1-Staerke abgeschwaecht.
+  const profiles = {
+    None: { None:1.0, Common:1.0, Uncommon:1.0, Rare:1.0, Epic:1.0, Legendary:1.0, Mythic:1.0 },
+    Common: { None:1.07, Common:1.09, Uncommon:1.0, Rare:0.95, Epic:0.88, Legendary:0.81, Mythic:0.76 },
+    Uncommon: { None:1.02, Common:1.02, Uncommon:1.05, Rare:1.0, Epic:0.95, Legendary:0.88, Mythic:0.81 },
+    Rare: { None:0.96, Common:0.93, Uncommon:1.04, Rare:1.1, Epic:1.05, Legendary:0.96, Mythic:0.9 },
+    Epic: { None:0.9, Common:0.84, Uncommon:1.0, Rare:1.12, Epic:1.31, Legendary:1.19, Mythic:1.07 },
+    Legendary: { None:0.82, Common:0.77, Uncommon:0.95, Rare:1.1, Epic:1.42, Legendary:1.56, Mythic:1.35 },
+    Mythic: { None:0.76, Common:0.72, Uncommon:0.88, Rare:1.05, Epic:1.73, Legendary:2.05, Mythic:2.4 },
+  };
+  return profiles[tier] || profiles.None;
+}
+
+const TIER_MULTIPLIERS = {
+  TrashMagnet: { None:1.4, Trash:1.6, Common:1.2, Uncommon:0.9, Rare:0.7, Epic:0.5, Legendary:0.35, OP:0.25 },
+  BetterEnchantments: { Trash:0.5, Common:1.0, Uncommon:1.2, Rare:1.5, Epic:1.8, Legendary:2.0, OP:2.2 },
+  MagicBoost_Power: { Trash:0.7, Common:1.0, Uncommon:1.2, Rare:1.4, Epic:1.7, Legendary:2.0, OP:2.2 },
+  MagicBoost_PM:    { Trash:0.7, Common:1.0, Rare:1.3, Epic:1.6, Legendary:2.0, OP:2.2 },
+  UnderdogLuck: { Trash:1.0, Common:1.0, Uncommon:1.1, Rare:1.2, Epic:1.35, Legendary:1.5, OP:1.8 },
+  BossLuck: { None:0.6, Trash:0.4, Common:0.8, Uncommon:1.0, Rare:1.3, Epic:1.6, Legendary:1.9, OP:2.2 },
+};
+
+function isStatWheel(wheelID) {
+  return ['STR', 'IQ', 'Speed', 'Dura'].includes(wheelID);
+}
+
+function getRaceTierLuckProfileForStats(tier) {
+  // Season 2: neutral. Die Stat-Raeder sind selbst nach Rassenklasse
+  // getrennt - eine zusaetzliche Gewichtung waere doppelt gemoppelt.
+  return { None:1.0, Common:1.0, Uncommon:1.0, Rare:1.0,
+           Epic:1.0, Legendary:1.0, Mythic:1.0 };
+}
+
+function nameHas(entry, keywords) {
+  const n = String(entry.displayName || '').toLowerCase();
+  return keywords.some(k => n.includes(String(k).toLowerCase()));
+}
+
+function isEmptyEntry(entry) {
+  return ['Nothing','No Weapon','No Armor','No Power'].includes(entry.displayName);
+}
+
+function isEmptyResultForWheel(entry, wheelID) {
+  if (wheelID === 'Companion' && entry.displayName === 'Nothing')   return true;
+  if (wheelID === 'Weapon'    && entry.displayName === 'No Weapon') return true;
+  if (wheelID === 'Armor'     && entry.displayName === 'No Armor')  return true;
+  if (wheelID === 'Power'     && entry.displayName === 'No Power')  return true;
+  return false;
+}
+
+function isBlessingLike(entry) {
+  return nameHas(entry, ['Blessing','Favor','Approval','Heart','Spark','Chosen','Sacred','Grace','Lucky','Perfect','Crown']);
+}
+function isCurseLike(entry) {
+  return nameHas(entry, ['Curse','Pact','Debt','Abyss','Void','World Taxed','Moon Debt','Mimic Curse']);
+}
+
+// -- ersetzt durch das Season-2-Combosystem weiter unten --
+
+const S2_PROF_EFFECTS = {
+  "NPC":               [["tier","Loot",-1]],
+  "Tax Collector":     [["tier","Loot",-1]],
+  "Underdog":          [["high","all"]],
+  "Fool":              [["chaos",["STR", "SPD"]]],
+  "Drunkard":          [["chaos",["STR"]], ["down","IQ",2]],
+  "Potion Addict":     [["chaos",["IQ"]], ["tier","Enchantment",1]],
+  "Prisoner":          [["up","DUR",2], ["down","SPD",1], ["tier","Loot",-1]],
+  "Butler":            [["tier","Armor",1]],
+  "Chef":              [["up","DUR",1], ["focus","Weapon",["pan", "knife", "fork", "chef"],5]],
+  "Monster Dentist":   [["up","IQ",1], ["focus","Companion",["wolf", "bear", "hound", "boar", "lion", "tiger", "panther"],3]],
+  "Grave Robber":      [["focus","DarkAll",["bone", "grave", "reaper", "soul", "cursed", "undead", "void", "abyss", "blood", "shadow"],4]],
+  "Lumberjack":        [["up","STR",2], ["down","SPD",1], ["focus","Weapon",["axe", "hammer", "great", "club"],4]],
+  "Void Intern":       [["focus","Curse",[""],3]],
+  "Tamer":             [["guard","Companion"], ["tier","Companion",1]],
+  "Stablemaster":      [["guard","Companion"], ["up","SPD",1]],
+  "Arena Medic":       [["up","DUR",1], ["focus","Blessing",[""],3]],
+  "Knight":            [["guard","Armor"], ["up","DUR",1]],
+  "Shield Sentinel":   [["guard","Armor"], ["up","DUR",2], ["down","SPD",1]],
+  "Blacksmith":        [["tier","Weapon",1], ["up","DUR",1]],
+  "Alchemist":         [["tier","Enchantment",2]],
+  "Toymaker":          [["tier","Enchantment",2], ["guard","Companion"]],
+  "Cartographer":      [["up","SPD",1], ["up","IQ",1]],
+  "Ranger":            [["up","SPD",1], ["focus","Weapon",["bow", "shuriken", "harpoon", "sling", "frisbee", "piercer"],4]],
+  "Thief":             [["up","SPD",1], ["focus","Weapon",["dagger", "knife", "whip", "shuriken", "sickle"],4]],
+  "Bounty Hunter":     [["up","IQ",1], ["focus","Weapon",["bow", "shuriken", "harpoon", "dagger", "blade", "sword"],4]],
+  "Beast Butcher":     [["up","STR",1], ["focus","Weapon",["axe", "sword", "blade", "knife", "cleaver"],3]],
+  "Mage":              [["tier","Power",2]],
+  "Witch":             [["focus","Power",["magic", "shadow", "soul", "blood", "void", "moon", "dream", "necro"],5]],
+  "Berserker":         [["up","STR",2], ["focus","Weapon",["axe", "sword", "hammer", "katana", "scythe", "blade", "great"],4]],
+  "Murderer":          [["up","SPD",1], ["focus","Weapon",["knife", "dagger", "sword", "axe", "blade", "scythe", "blood"],5]],
+  "Dungeon Warden":    [["up","DUR",1], ["focus","Armor",["plate", "chain", "steel", "stone", "iron", "fortress", "guard", "carapace"],5]],
+  "Battle Bard":       [["guard","Companion"], ["up","SPD",1], ["up","IQ",1]],
+  "Beast Whisperer":   [["guard","Companion"], ["focus","Companion",["wolf", "bear", "fox", "owl", "lion", "tiger", "panther", "hound", "stag", "elk", "boar", "hare", "falcon", "crow", "spider", "serpent"],5]],
+  "Dragon Groomer":    [["guard","Companion"], ["focus","Companion",["dragon", "wyvern", "wyrm", "drake"],6]],
+  "Blessed":           [["focus","Blessing",[""],5]],
+  "Cursed One":        [["focus","Curse",[""],5]],
+  "Gambler":           [["chaos","all"]],
+  "The Lost":          [["dice"]],
+  "Exorcist":          [["tier","Power",2], ["focus","Blessing",[""],4]],
+  "Storm Chef":        [["up","STR",1], ["focus","Weapon",["pan", "knife", "fork", "chef"],6], ["tier","Power",1]],
+  "Gladiator":         [["up","STR",1], ["up","SPD",1], ["guard","Weapon"]],
+  "Champion":          [["guard","Weapon"], ["guard","Armor"], ["up","STR",1]],
+  "Oathbreaker":       [["focus","Curse",[""],5]],
+  "Monster Lawyer":    [["up","IQ",2], ["curse2blessing"]],
+  "Relic Thief":       [["up","SPD",1], ["focus","Weapon",["dagger", "knife", "whip", "shuriken", "sickle"],4], ["tier","Enchantment",2]],
+  "Mimic Trainer":     [["up","STR",1], ["up","IQ",1], ["up","SPD",1], ["up","DUR",1]],
+  "Rune Hunter":       [["focus","Enchantment",["rune", "arcane", "origin", "world", "stellar"],5], ["tier","Enchantment",2]],
+  "Storm Caller":      [["tier","Power",2], ["focus","Power",["storm", "lightning", "thunder", "shock"],5]],
+  "Oracle":            [["up","IQ",2], ["guard","Power"], ["tier","Enchantment",2]],
+  "Royal Heir":        [["tier","Armor",2], ["tier","Weapon",2], ["focus","Blessing",[""],5]],
+  "Shapeshifter":      [["up","STR",1], ["up","IQ",1], ["up","SPD",1], ["up","DUR",1], ["guard","Power"], ["tier","Power",1]],
+  "Joker":             [["chaos","all"], ["tier","Loot",2]],
+  "Final Boss":        [["up","STR",1], ["up","IQ",1], ["up","SPD",1], ["up","DUR",1], ["guard","Weapon"], ["guard","Armor"], ["guard","Companion"], ["guard","Power"], ["tier","Loot",2]],
+};
+
+const S2_RACE_EFFECTS = {
+  "Jinxer":            [["tier","Loot",-1], ["down","STR",1], ["down","IQ",1], ["down","SPD",1], ["down","DUR",1]],
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  SEASON 2 — BAUSTEINSYSTEM
+//  Ersetzt die 37 Einzeleffekte aus Season 1. Jeder Beruf besteht aus
+//  ein bis drei Bausteinen, die hier zentral ausgewertet werden.
+// ══════════════════════════════════════════════════════════════════
+
+const S2_CLASS_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+const S2_SHIFT_CAP   = 'Legendary';   // kein Effekt schaltet das Mythic-Rad frei
+const S2_STAT_WHEELS = { STR:'STR', IQ:'IQ', Speed:'SPD', Dura:'DUR' };
+
+// Alle Bausteine, die gerade aktiv sind (Beruf + Rasse)
+function s2Blocks() {
+  const out = [];
+  const prof = genResults['Profession']?.displayName;
+  const race = genResults['Race']?.displayName;
+  if (prof && S2_PROF_EFFECTS[prof]) out.push(...S2_PROF_EFFECTS[prof]);
+  if (race && S2_RACE_EFFECTS[race]) out.push(...S2_RACE_EFFECTS[race]);
+  return out;
+}
+
+// Separate flache Profession-Statboni sind in Season 2 bewusst deaktiviert.
+// Das Objekt bleibt fuer die zentrale Stat-Abrechnung bestehen und ist damit
+// im normalen Generatorfluss immer null auf allen sechs Stats.
+let s2FlatBonus = { STR:0, IQ:0, SPD:0, DUR:0, PM:0, DEF:0 };
+
+// PM und DEF haben kein eigenes Rad. Profession-Bausteine werden deshalb nicht
+// in schwer nachvollziehbare Zusatzpunkte umgerechnet.
+const S2_NO_WHEEL = ['PM', 'DEF'];
+function s2ApplyFlatStatBlocks() {
+  const d = {};
+  const race = genResults['Race']?.displayName;
+  const raceBlocks = race && S2_RACE_EFFECTS[race] ? S2_RACE_EFFECTS[race] : [];
+  for (const b of raceBlocks) {
+    if (b[0] !== 'up' && b[0] !== 'down') continue;
+    if (!S2_NO_WHEEL.includes(b[1])) continue;
+    const v = (b[0] === 'up' ? 2 : -2) * b[2];
+    d[b[1]] = (d[b[1]] || 0) + v;
+  }
+  const keys = Object.keys(d);
+  if (!keys.length) return;
+  keys.forEach(k => { genStats[k] += d[k]; s2FlatBonus[k] += d[k]; });
+  const parts = keys.map(k =>
+    `<span class="${d[k] > 0 ? 'rp-pos' : 'rp-neg'}">${d[k] > 0 ? '+' : ''}${d[k]} ${k}</span>`);
+  lastComboPanel = `<span class="rp-stats rp-fit-line"><span class="rp-src">BONUS</span>`
+                 + `${parts.join('<span class="rp-neu"> · </span>')}</span>`;
+}
+
+function s2StatWheelClass(wheelID) {
+  const base = genResults['Race']?.tier || 'Common';
+  const stat = S2_STAT_WHEELS[wheelID];
+  if (!stat) return base;
+  let steps = 0;
+  for (const b of s2Blocks()) {
+    if (b[0] === 'up'   && b[1] === stat) steps += b[2];
+    if (b[0] === 'down' && b[1] === stat) steps -= b[2];
+  }
+  steps += (s2Combo.wheelUp[stat] || 0);   // Combos koennen ebenfalls schieben
+  if (steps === 0) return base;
+  let i = S2_CLASS_ORDER.indexOf(base);
+  if (i < 0) i = 0;
+  const cap = S2_CLASS_ORDER.indexOf(S2_SHIFT_CAP);
+  let j = i + steps;
+  if (steps > 0) j = Math.min(j, Math.max(i, cap));   // nie ueber Legendary, nie unter den Ist-Stand
+  j = Math.max(0, Math.min(j, S2_CLASS_ORDER.length - 1));
+  return S2_CLASS_ORDER[j];
+}
+
+// Wuerfel-Baustein (The Lost): jeder Stat kriegt eine zufaellige Klasse
+let s2DiceClass = null;
+function s2DiceFor(stat) {
+  if (!s2DiceClass) {
+    s2DiceClass = {};
+    for (const s of ['STR','IQ','SPD','DUR']) {
+      s2DiceClass[s] = S2_CLASS_ORDER[Math.floor(Math.random() * 5)];  // Common..Legendary
+    }
+  }
+  return s2DiceClass[stat];
+}
+function s2HasDice() { return s2Blocks().some(b => b[0] === 'dice'); }
+
+// Welche Loot-Raeder meint ein Baustein?
+function s2WheelMatches(target, wheelID) {
+  if (target === wheelID) return true;
+  if (target === 'Loot')     return ['Companion','Weapon','Enchantment','Armor','Power'].includes(wheelID);
+  if (target === 'DarkAll')  return ['Weapon','Armor','Curse'].includes(wheelID);
+  return false;
+}
+
+const S2_RARE_UP = ['Rare','Epic','Legendary','Mythic'];
+
+// Gewichtsmultiplikator aus allen Bausteinen
+function s2WeightMul(entry, wheelID) {
+  let m = 1;
+  const name = (entry.displayName || '').toLowerCase();
+  const tier = entry.tier || 'Common';
+  const isStat = !!S2_STAT_WHEELS[wheelID];
+  const val = isStat ? (entry[S2_STAT_WHEELS[wheelID]] ?? 0) : null;
+
+  for (const b of s2Blocks()) {
+    switch (b[0]) {
+      case 'focus': {
+        if (!s2WheelMatches(b[1], wheelID)) break;
+        const kws = b[2];
+        const hit = (kws.length === 1 && kws[0] === '') ? true
+                  : kws.some(k => k && name.includes(k));
+        if (hit) m *= b[3];
+        break;
+      }
+      case 'tier': {
+        if (!s2WheelMatches(b[1], wheelID)) break;
+        const n = b[2];
+        if (n > 0 && S2_RARE_UP.includes(tier)) m *= (n >= 2 ? 2.8 : 1.8);
+        if (n < 0 && (tier === 'Common' || isEmptyEntry(entry))) m *= 1.6;
+        if (n < 0 && S2_RARE_UP.includes(tier)) m *= 0.7;
+        break;
+      }
+      case 'chaos': {
+        if (!isStat) break;
+        const list = b[1];
+        if (list !== 'all' && !list.includes(S2_STAT_WHEELS[wheelID])) break;
+        const CH = {0:4.0,1:2.5,2:1.5,3:0.5,4:0.4,5:0.4,6:0.4,7:0.5,8:1.5,9:2.5,10:4.0};
+        m *= (CH[val] ?? 1);
+        break;
+      }
+      case 'high': {
+        if (!isStat) break;
+        const list = b[1];
+        if (list !== 'all' && !list.includes(S2_STAT_WHEELS[wheelID])) break;
+        if (val === 10) m *= 4; else if (val === 9) m *= 2.5;
+        break;
+      }
+    }
+  }
+  return m;
+}
+
+// Garantien: Leer- UND Common-Eintraege fliegen vom Rad
+function s2FilterEntries(entries, wheelID) {
+  let out = entries;
+  for (const b of s2Blocks()) {
+    if (b[0] === 'guard' && b[1] === wheelID) {
+      out = out.filter(e => !isEmptyEntry(e) && e.tier !== 'Common');
+    }
+    if (b[0] === 'slotonly' && wheelID === 'Weapon') {
+      out = out.filter(e => !isEmptyEntry(e) && (e.slots || 0) >= 1);
+    }
+  }
+  return out.length ? out : entries;   // nie leer laufen lassen
+}
+
+// Monster Lawyer: alle Flueche werden zu Segen
+function s2CurseBecomesBlessing() {
+  return s2Blocks().some(b => b[0] === 'curse2blessing');
+}
+
+function getEffectiveWeight(entry, wheelID) {
+  return Math.max(0, Number(entry.baseWeight) || 0);
+}
+
+// ── COMBO SYSTEM ──────────────────────────────────────────────────
+
+let lastComboPanel = ''; // shown in reward panel
+
+
+
+
+// ══════════════════════════════════════════════════════════════════
+//  SEASON 2 — COMBOS
+//  Alle 43 Season-1-Combos sind gestrichen. 26 neue, davon 12 mit
+//  Sondereffekt. Kein Hinweiskasten mehr vor dem Spin - die Werte
+//  erscheinen als eigene Zeile unter den Stats.
+// ══════════════════════════════════════════════════════════════════
+
+// Zustand, den Combos setzen koennen (wirkt auf spaetere Raeder)
+let s2Combo = { wheelUp: {}, guard: [], extraSlot: 0 };
+function s2ResetCombos() {
+  s2Combo = { wheelUp: {}, guard: [], extraSlot: 0 };
+}
+
+const S2_MYTHIC = 'Mythic';
+const S2_RAREUP = ['Rare','Epic','Legendary','Mythic'];
+const s2Has = (s, ...kw) => kw.some(k => (s || '').toLowerCase().includes(k));
+
+// ── Combo-Assist ─────────────────────────────────────────────────
+// Ohne diese Hochgewichtung laege Dragon Legacy bei 1 zu 4.600.
+function applyComboAssistWeight(entry, wheelID, w) {
+  if (wheelID === 'Race') return w;
+  const race = genResults['Race']?.displayName || '';
+  const n = (entry.displayName || '').toLowerCase();
+  const open = (name) => !triggeredCombos.some(c => c.name === name);
+
+  if (wheelID === 'Weapon') {
+    if (race === 'Dragonborn' && n.includes('dragon') && open('Dragon Legacy')) w *= 12;
+    if (race === 'Angel' && s2Has(n,'excalibur','sun','holy','skyfall') && open('Holy Arsenal')) w *= 12;
+    if (race === 'Demon' && s2Has(n,'black','demonic','infernal','reaper') && open('Infernal Weapon')) w *= 12;
+  }
+  if (wheelID === 'Companion' && race === 'Dragonborn' &&
+      s2Has(n,'dragon','wyvern') && open('Dragon Rider')) w *= 12;
+  if (wheelID === 'Armor' && race === 'Crystalborn' &&
+      n.includes('crystal') && open('Crystal Fortress')) w *= 15;
+  return w;
+}
+
+// ── Combo anwenden ───────────────────────────────────────────────
+function s2ComboSource(...items) {
+  return items
+    .flat()
+    .map(item => typeof item === 'string' ? item : item?.displayName)
+    .filter(Boolean)
+    .join(' + ');
+}
+
+function s2EscHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  })[ch]);
+}
+
+function applyCombo(name, delta, extra, source) {
+  if (triggeredCombos.find(c => c.name === name)) return;
+  triggeredCombos.push({ name, delta: delta || {}, source: source || '' });
+  STAT_KEYS.forEach(k => { genStats[k] += Number((delta || {})[k] || 0); });
+
+  let note = '';
+  if (extra) {
+    if (extra.wheelUp) { for (const s in extra.wheelUp) s2Combo.wheelUp[s] = (s2Combo.wheelUp[s]||0) + extra.wheelUp[s]; note = 'WHEEL UPGRADE'; }
+    if (extra.guard)   { s2Combo.guard.push(...extra.guard); note = 'GUARANTEED'; }
+    if (extra.slot)    { s2Combo.extraSlot += extra.slot;    note = 'EXTRA SLOT'; }
+    if (extra.double)  { note = (extra.factor >= 1) ? 'DOUBLED' : 'EMPOWERED'; }
+  }
+
+  const parts = STAT_KEYS.filter(k => (delta||{})[k]).map(k => {
+    const v = delta[k];
+    return `<span class="${v > 0 ? 'rp-pos' : 'rp-neg'}">${v > 0 ? '+' : ''}${v} ${k}</span>`;
+  });
+  if (note) parts.unshift(`<span class="rp-pos" style="letter-spacing:.5px;">${note}</span>`);
+  // Die Herkunft steht klein direkt vor den Werten in derselben Zeile,
+  // damit man sieht, dass es ein Bonus ist und woher er kommt.
+  const _kind = name.endsWith(" Set") ? "SET" : "COMBO";
+  const sourceLine = source
+    ? `<span class="rp-trigger">↳ ${s2EscHtml(source)}</span>`
+    : '';
+  // Append instead of overwrite so two combos caused by the same result are
+  // both explained in the reward panel.
+  lastComboPanel += `<span class="rp-stats rp-combo"><span class="rp-combo-main rp-fit-line"><span class="rp-src">${_kind}: ${s2EscHtml(name)}</span>`
+                  + `${parts.join('<span class="rp-neu"> · </span>')}</span>${sourceLine}</span>`;
+}
+
+// Verdoppelt die Werte des ausloesenden Eintrags
+// Werte des ausloesenden Eintrags noch einmal obendrauf, ganz oder anteilig.
+// True Form nutzt nur die Haelfte: eine verdoppelte Rassen-Power (Σ15-17)
+// war der groesste Einzelposten im Vorsprung der Legendary-Rassen.
+function s2Double(name, entry, factor, source) {
+  if (!entry) return;
+  const f = (factor === undefined) ? 1 : factor;
+  const d = {};
+  STAT_KEYS.forEach(k => {
+    if (!entry[k]) return;
+    const v = entry[k] > 0 ? Math.floor(entry[k] * f) : Math.ceil(entry[k] * f);
+    if (v) d[k] = v;
+  });
+  applyCombo(name, d, { double: true, factor: f }, source);
+}
+
+// ── SET-BONI: Waffe + Ruestung aus derselben Familie ─────────────
+const S2_SETS = {
+  Sun:     { kw:['sun','solar','holy','angel','seraph','archangel'], bonus:{PM:3,DEF:3} },
+  Storm:   { kw:['storm','thunder','lightning','shock'],             bonus:{SPD:3,PM:3} },
+  Machine: { kw:['plasma','rotary','railgun','nano','missile','fortress','ironclad',
+                 'circuitweave','titanium','pulseframe','overdrive','neural','graviton',
+                 'forgeheart'],                                    bonus:{DUR:3,DEF:3} },
+  Origin:  { kw:['origin','world','wheel'],                          bonus:{STR:2,IQ:2,SPD:2,DUR:2,PM:2,DEF:2} },
+  Dragon:  { kw:['dragon'],                                          bonus:{STR:4,PM:2} },
+  Void:    { kw:['void','oblivion'],                                 bonus:{IQ:3,PM:3} },
+  Bone:    { kw:['bone','reaper','grave','soul'],                     bonus:{PM:4,DUR:2} },
+  // 'cryo' gehoert hierher, nicht zu Machine - sonst beansprucht Machine
+  // die einzige Eiswaffe und das Ice-Set kann nie zustande kommen.
+  Ice:     { kw:['ice','frost','glacial','cryo'],                     bonus:{DUR:4,DEF:2} },
+  Moon:    { kw:['moon','lunar'],                                     bonus:{IQ:3,SPD:3} },
+  Crystal: { kw:['crystal'],                                          bonus:{DUR:3,DEF:3} },
+};
+function s2SetOf(name) {
+  const n = (name || '').toLowerCase();
+  for (const k in S2_SETS) if (S2_SETS[k].kw.some(x => n.includes(x))) return k;
+  return null;
+}
+function s2CheckSet() {
+  const w = genResults['Weapon']?.displayName;
+  const a = genResults['Armor']?.displayName;
+  if (!w || !a) return;
+  const sw = s2SetOf(w), sa = s2SetOf(a);
+  if (sw && sw === sa) applyCombo(sw + ' Set', S2_SETS[sw].bonus, null, s2ComboSource(w, a));
+}
+
+// ── Die 26 Combos ────────────────────────────────────────────────
+function checkAndApplyCombos(triggerType, lastEntry) {
+  const r = genResults;
+  const race = r.Race?.displayName || '';
+  const prof = r.Profession?.displayName || '';
+  const rTier = r.Race?.tier || '';
+
+  // Mythic-Treffer - nur auf den LOOT-Raedern. Auf den Stat-Raedern traegt
+  // das 10er-Segment ebenfalls die Stufe 'Mythic' (das ist dort nur die
+  // Farbe). Ohne diese Einschraenkung wuerde eine 10 auf dem STR-Rad den
+  // Combo ausloesen und Punkte auf alle sechs Stats geben.
+  const S2_LOOT_WHEELS = ['Companion','Weapon','Enchantment','Armor','Power','Blessing','Curse'];
+  if (triggerType === 'OnMythicHit' && lastEntry?.tier === S2_MYTHIC
+      && S2_LOOT_WHEELS.includes(lastEntry?.wheelID)) {
+    if (rTier === 'Common') applyCombo(
+      'Against All Odds',
+      {STR:2,IQ:2,SPD:2,DUR:2,PM:2,DEF:2},
+      null,
+      s2ComboSource(r.Race, lastEntry)
+    );
+    const mythEntries = ['Companion','Weapon','Armor','Power','Blessing','Curse']
+      .map(k => r[k])
+      .filter(entry => entry && entry.tier === S2_MYTHIC);
+    if (mythEntries.length >= 2) applyCombo(
+      'Chosen By The Wheel',
+      {STR:3,IQ:3,SPD:3,DUR:3,PM:3,DEF:3},
+      null,
+      s2ComboSource(mythEntries)
+    );
+  }
+
+  if (triggerType === 'AfterProfession') {
+    if (['Orc','Minotaur','Oni','Titan'].includes(race) &&
+        ['Berserker','Gladiator','Champion','Beast Butcher'].includes(prof))
+      applyCombo('Born Fighter', {}, { wheelUp:{STR:1} }, s2ComboSource(race, prof));
+    if (['Elf','Djinn','Voidborn','Elemental'].includes(race) &&
+        ['Mage','Witch','Storm Caller','Oracle'].includes(prof))
+      applyCombo('Arcane Bloodline', {PM:3}, null, s2ComboSource(race, prof));
+    if (['Mechanoid','Clockwork Doll'].includes(race) &&
+        ['Blacksmith','Toymaker','Shield Sentinel'].includes(prof))
+      applyCombo('Machine Soul', {}, { wheelUp:{DUR:1} }, s2ComboSource(race, prof));
+    if (['Ratfolk','Goblin','Gnome','Fishman'].includes(race) &&
+        ['Thief','Relic Thief','Gambler'].includes(prof))
+      applyCombo('Street Rat', {}, { wheelUp:{SPD:1} }, s2ComboSource(race, prof));
+    if (race === 'Angel' &&
+        ['Oathbreaker','Murderer','Grave Robber','Cursed One','Void Intern','Prisoner','Drunkard'].includes(prof))
+      applyCombo('Fallen Grace', {STR:3,PM:3,DEF:-2}, null, s2ComboSource(race, prof));
+  }
+
+  if (triggerType === 'AfterCompanion') {
+    if (race === 'Dragonborn' && s2Has(lastEntry?.displayName,'dragon','wyvern'))
+      s2Double('Dragon Rider', lastEntry, 1, s2ComboSource(race, lastEntry));
+  }
+
+  if (triggerType === 'AfterWeapon') {
+    const n = lastEntry?.displayName || '';
+    if (race === 'Dragonborn' && n.toLowerCase().includes('dragon'))
+      s2Double('Dragon Legacy', lastEntry, 1, s2ComboSource(race, lastEntry));
+    if (prof === 'Blacksmith' && (lastEntry?.slots || 0) >= 2)
+      applyCombo('Masterwork', {STR:2,DEF:1}, { slot:1 }, s2ComboSource(prof, lastEntry));
+    if (race === 'Angel' && s2Has(n,'excalibur','sun','holy','skyfall'))
+      applyCombo('Holy Arsenal', {IQ:2,DUR:2,PM:3,DEF:2}, null, s2ComboSource(race, lastEntry));
+    if (race === 'Demon' && s2Has(n,'black','demonic','infernal','reaper'))
+      applyCombo('Infernal Weapon', {STR:4,PM:3}, null, s2ComboSource(race, lastEntry));
+    if (['Berserker','Gladiator','Murderer','Beast Butcher','Lumberjack','Champion'].includes(prof) &&
+        s2Has(n,'axe','sword','hammer','katana','scythe','blade','great','knife','dagger'))
+      applyCombo("Berserker's Edge", {STR:4,DEF:-1}, null, s2ComboSource(prof, lastEntry));
+    if (['Ranger','Bounty Hunter','Cartographer','Thief','Relic Thief'].includes(prof) &&
+        s2Has(n,'bow','shuriken','harpoon','sling','frisbee','piercer'))
+      applyCombo('Perfect Shot', {SPD:4,IQ:1}, null, s2ComboSource(prof, lastEntry));
+    if (['Chef','Storm Chef'].includes(prof) && s2Has(n,'pan','knife','fork'))
+      applyCombo('Kitchen Nightmare', {STR:3,IQ:2,PM:2}, null, s2ComboSource(prof, lastEntry));
+  }
+
+  if (triggerType === 'AfterEnchantment') {
+    if (['Rune Hunter','Alchemist','Toymaker'].includes(prof) && lastEntry?.tier === 'Common')
+      applyCombo('Runebound', {IQ:2,PM:3}, null, s2ComboSource(prof, lastEntry));
+  }
+
+  if (triggerType === 'AfterArmor') {
+    const n = lastEntry?.displayName || '';
+    if (['Knight','Shield Sentinel','Dungeon Warden','Champion','Royal Heir'].includes(prof) &&
+        S2_RAREUP.includes(lastEntry?.tier))
+      applyCombo('Full Plate', {DUR:3,DEF:3}, null, s2ComboSource(prof, lastEntry));
+    if (race === 'Crystalborn' && n === 'Crystal Plate')
+      applyCombo('Crystal Fortress', {DUR:3,PM:2,DEF:4}, null, s2ComboSource(race, lastEntry));
+    if (race === 'Mechanoid' &&
+        r.Weapon?.parentResult === 'Mechanoid' && r.Armor?.parentResult === 'Mechanoid')
+      applyCombo('Machine Complete', {STR:2,DUR:3,PM:2,DEF:3}, null, s2ComboSource(race, r.Weapon, r.Armor));
+    s2CheckSet();
+  }
+
+  if (triggerType === 'AfterPower') {
+    if (lastEntry?.parentResult === race && lastEntry?.parentWheel === 'Race')
+      s2Double('True Form', lastEntry, 0.5, s2ComboSource(race, lastEntry));
+    if (['Mage','Oracle','Storm Caller','Exorcist'].includes(prof) &&
+        ['Epic','Legendary','Mythic'].includes(lastEntry?.tier))
+      applyCombo('Mind Over Matter', {IQ:3,PM:4}, null, s2ComboSource(prof, lastEntry));
+  }
+
+  if (triggerType === 'AfterFate') {
+    const ft = lastEntry?.tier;
+    if (race === 'Noxaphim' && lastEntry?.wheelID === 'Blessing')
+      applyCombo('Celestial Nature', {IQ:2,DEF:2}, null, s2ComboSource(race, lastEntry));
+    if (race === 'Noxaphim' && lastEntry?.wheelID === 'Curse')
+      applyCombo('Infernal Nature', {STR:2,PM:2}, null, s2ComboSource(race, lastEntry));
+    if (race === 'Demon' && lastEntry?.wheelID === 'Curse' &&
+        ['Epic','Legendary','Mythic'].includes(ft))
+      applyCombo("Devil's Deal", {STR:3,PM:4}, null, s2ComboSource(race, lastEntry));
+    if (prof === 'Blessed' && lastEntry?.wheelID === 'Blessing' &&
+        ['Legendary','Mythic'].includes(ft))
+      applyCombo('Divine Favor', {IQ:2,PM:3,DEF:3}, null, s2ComboSource(prof, lastEntry));
+  }
+}
+
+
+function getEntriesForWheel(wheelID, parentResult) {
+  return WHEEL_ENTRIES.filter(e => e.wheelID === wheelID && getEffectiveWeight(e,wheelID) > 0);
+}
+
+function buildSegmentsFromEntries(entries) {
+  return entries.map(e => {
+    const tc = TIER_COLORS[e.tier] || TIER_COLORS.Common;
+    return { label: e.displayName, color: tc.bg, textColor: tc.text, entry: e };
+  });
+}
+
+// ── GENERATOR FLOW ────────────────────────────────────────────────
+function startGenerator() {
+  clearLastSpinCheckpoint();
+  s2DiceClass = null;
+  s2ResetCombos();
+  s2FlatBonus = { STR:0, IQ:0, SPD:0, DUR:0, PM:0, DEF:0 };
+  genStep    = 0;
+  genResults = {};
+  genStats   = { STR: 0, IQ: 0, SPD: 0, DUR: 0, PM: 0, DEF: 0 };
+  enchantmentsRolled = [];
+  enchantmentSlotsLeft = 0;
+  triggeredCombos = [];
+  generatorActive = true;
+  currentChampionSaved = false;
+  loadNextWheel();
+}
+
+function loadNextWheel() {
+  const rewardPanel = document.getElementById('reward-panel');
+  if (rewardPanel) rewardPanel.style.display = 'none';
+  const flashBox = document.getElementById('spin-effect-flash');
+  if (flashBox) flashBox.style.display = 'none';
+  const effectCard = document.getElementById('effect-card-flash');
+  if (effectCard) effectCard.style.display = 'none';
+  clearTimeout(window.effectFlashTimeout);
+  clearTimeout(window.professionEffectTimeout);
+
+  if (genStep >= WHEEL_ORDER.length) {
+    showEndCard();
+    return;
+  }
+  const wheelID = WHEEL_ORDER[genStep];
+  const parentResult = genResults['Race'] ? genResults['Race'].displayName : null;
+
+  // ── Enchantment special logic ──────────────────────────────────
+  if (wheelID === 'Enchantment') {
+    const weapon = genResults['Weapon'];
+    const slots = weapon ? (weapon.slots || 0) : 0;
+
+    // First time hitting Enchantment: set how many spins needed
+    if (enchantmentSlotsLeft === 0) {
+      if (!weapon || weapon.displayName === 'No Weapon' || slots === 0) {
+        // Skip enchantment entirely
+        genStep++;
+        loadNextWheel();
+        return;
+      }
+      enchantmentSlotsLeft = slots + (s2Combo.extraSlot || 0);
+    }
+    // If we still have spins left, show enchantment wheel (don't advance genStep)
+  }
+
+  const entries = getEntriesForWheel(wheelID, parentResult);
+
+  // If no entries (e.g. Race has no real Subraces), skip silently
+  if (entries.length === 0) {
+    if (wheelID === 'Subrace') genResults['Subrace'] = null;
+    genStep++;
+    loadNextWheel();
+    return;
+  }
+
+  // Update title card + icon
+  document.getElementById('title-card').textContent = RETRO_WHEELS[wheelID]?.label || wheelID;
+  const _rt = document.getElementById('result-text'); _rt.textContent = '???'; _rt.removeAttribute('textLength'); _rt.removeAttribute('lengthAdjust'); _rt.setAttribute('font-size','38'); _rt.setAttribute('letter-spacing','3');
+  updateWheelIcon(wheelID);
+  renderEffectPreview(wheelID);
+
+  // Build weighted segment layout
+  segLayout = buildSegments(entries, wheelID);
+  currentRotation = 0;
+  winnerSeg = null;
+  drawWheel(currentRotation);
+  // Prepare the live headline sizes before the user starts spinning. Dense
+  // wheels then perform no canvas text measurements inside the animation.
+  warmResultTextFits(segLayout);
+}
+
+function getVisibleProfessionEffect(professionName) {
+  // Season 2: direkt aus den Bausteinen erzeugt - der Text auf der
+  // Karte beschreibt damit immer genau das, was auch passiert.
+  const map = {
+    "NPC":               { title:'Ordinary Life',         text:'Weaker loot.' },
+    "Tax Collector":     { title:'Paperwork',             text:'Weaker loot.' },
+    "Underdog":          { title:'Underdog Luck',         text:'High rolls boosted on all stats.' },
+    "Fool":              { title:'Foolish Luck',          text:'Chaos on STR and SPD: 0 and 10 far more likely.' },
+    "Drunkard":          { title:'Drunken Chaos',         text:'Chaos on STR: 0 and 10 far more likely. IQ wheel downgraded twice.' },
+    "Potion Addict":     { title:'Potion Haze',           text:'Chaos on IQ: 0 and 10 far more likely. Stronger enchantments.' },
+    "Prisoner":          { title:'Shackled Start',        text:'DUR wheel upgraded twice. SPD wheel downgraded. Weaker loot.' },
+    "Butler":            { title:'Household Order',       text:'Stronger armor.' },
+    "Chef":              { title:'Kitchen Arsenal',       text:'DUR wheel upgraded. Kitchen weapons 5x more likely.' },
+    "Monster Dentist":   { title:'Beast Care',            text:'IQ wheel upgraded. Beast companions 3x more likely.' },
+    "Grave Robber":      { title:'Grave Loot',            text:'Dark gear 4x more likely.' },
+    "Lumberjack":        { title:'Heavy Hands',           text:'STR wheel upgraded twice. SPD wheel downgraded. Heavy weapons 4x more likely.' },
+    "Void Intern":       { title:'Minor Curse',           text:'Curses 3x more likely.' },
+    "Tamer":             { title:'Guaranteed Companion',  text:'Guaranteed companions, weak results removed. Stronger companions.' },
+    "Stablemaster":      { title:'Reliable Mount',        text:'Guaranteed companions, weak results removed. SPD wheel upgraded.' },
+    "Arena Medic":       { title:'Field Medic',           text:'DUR wheel upgraded. Blessings 3x more likely.' },
+    "Knight":            { title:'Knightly Armor',        text:'Guaranteed armor, weak results removed. DUR wheel upgraded.' },
+    "Shield Sentinel":   { title:'Defensive Stance',      text:'Guaranteed armor, weak results removed. DUR wheel upgraded twice. SPD wheel downgraded.' },
+    "Blacksmith":        { title:'Slot Smith',            text:'Slotted weapons are much more likely. DUR wheel upgraded.' },
+    "Alchemist":         { title:'Better Enchantments',   text:'Much stronger enchantments.' },
+    "Toymaker":          { title:'Tinkerer',              text:'Much stronger enchantments. Guaranteed companions, weak results removed.' },
+    "Cartographer":      { title:'Pathfinder',            text:'SPD wheel upgraded. IQ wheel upgraded.' },
+    "Ranger":            { title:'Precision Gear',        text:'SPD wheel upgraded. Ranged weapons 4x more likely.' },
+    "Thief":             { title:'Loot Sense',            text:'SPD wheel upgraded. Light weapons 4x more likely.' },
+    "Bounty Hunter":     { title:'Target Lock',           text:'IQ wheel upgraded. Ranged and bladed weapons 4x more likely.' },
+    "Beast Butcher":     { title:'Butcher Work',          text:'STR wheel upgraded. Cutting weapons 3x more likely.' },
+    "Mage":              { title:'Magic Boost',           text:'Much stronger powers.' },
+    "Witch":             { title:'Witchcraft',            text:'Dark magic 5x more likely.' },
+    "Berserker":         { title:'Brutal Arsenal',        text:'STR wheel upgraded twice. Brutal weapons 4x more likely.' },
+    "Murderer":          { title:'Bloodthirst',           text:'SPD wheel upgraded. Lethal weapons 5x more likely.' },
+    "Dungeon Warden":    { title:'Warden Control',        text:'DUR wheel upgraded. Heavy armor 5x more likely.' },
+    "Battle Bard":       { title:'Bard\'s Call',          text:'Guaranteed companions, weak results removed. SPD wheel upgraded. IQ wheel upgraded.' },
+    "Beast Whisperer":   { title:'Beast Bond',            text:'Guaranteed companions, weak results removed. Beasts 5x more likely.' },
+    "Dragon Groomer":    { title:'Dragon Bond',           text:'Guaranteed companions, weak results removed. Dragons 6x more likely.' },
+    "Blessed":           { title:'Blessed Fate',          text:'Blessings 5x more likely.' },
+    "Cursed One":        { title:'Curse Magnet',          text:'Curses 5x more likely.' },
+    "Gambler":           { title:'Gambler Chaos',         text:'Chaos on all stats: 0 and 10 far more likely.' },
+    "The Lost":          { title:'Lost Fate',             text:'Every stat rolls a random wheel.' },
+    "Exorcist":          { title:'Exorcism',              text:'Much stronger powers. Blessings 4x more likely.' },
+    "Storm Chef":        { title:'Storm Kitchen',         text:'STR wheel upgraded. Kitchen weapons 6x more likely. Stronger powers.' },
+    "Gladiator":         { title:'Arena Master',          text:'STR wheel upgraded. SPD wheel upgraded. Guaranteed weapons, weak results removed.' },
+    "Champion":          { title:'Champion Gear',         text:'Guaranteed weapons, weak results removed. Guaranteed armor, weak results removed. STR wheel upgraded.' },
+    "Oathbreaker":       { title:'Broken Oath',           text:'Curses 5x more likely.' },
+    "Monster Lawyer":    { title:'Legal Loophole',        text:'IQ wheel upgraded twice. All curses become blessings.' },
+    "Relic Thief":       { title:'Relic Sense',           text:'SPD wheel upgraded. Light weapons 4x more likely. Much stronger enchantments.' },
+    "Mimic Trainer":     { title:'Adaptive Body',         text:'All stat wheels upgraded.' },
+    "Rune Hunter":       { title:'Rune Sense',            text:'Runic enchantments 5x more likely. Much stronger enchantments.' },
+    "Storm Caller":      { title:'Storm Mastery',         text:'Much stronger powers. Storm powers 5x more likely.' },
+    "Oracle":            { title:'Foresight',             text:'IQ wheel upgraded twice. Guaranteed powers, weak results removed. Much stronger enchantments.' },
+    "Royal Heir":        { title:'Royal Privilege',       text:'Much stronger armor. Much stronger weapons. Blessings 5x more likely.' },
+    "Shapeshifter":      { title:'True Form',             text:'All stat wheels upgraded. Guaranteed powers, weak results removed. Stronger powers.' },
+    "Joker":             { title:'Joker Luck',            text:'Chaos on all stats: 0 and 10 far more likely. Much stronger loot.' },
+    "Final Boss":        { title:'Boss Luck',             text:'All stat wheels upgraded. Guaranteed weapons, armor, companions and powers. Much stronger loot.' },
+  };
+  return map[professionName] || null;
+}
+
+function showProfessionEffectCard(entry) {
+  const fx = getVisibleProfessionEffect(entry.displayName);
+  const tc = TIER_COLORS[entry.tier] || TIER_COLORS.Common;
+  let box = document.getElementById('effect-card-flash');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'effect-card-flash';
+    (document.getElementById('app') || document.body).appendChild(box);
+  }
+  const _isTabletPE = Math.min(window.innerWidth, window.screen.width) > 500;
+  const _peTop = _isTabletPE ? 320 : 210;
+  const _s = _isTabletPE
+    ? { lbl:13, name:20, title:17, text:14, pad:'14px 24px', mb1:6, mb2:4, mb3:3, maxw:440, radius:18 }
+    : { lbl:9, name:14, title:12, text:10, pad:'9px 16px', mb1:4, mb2:3, mb3:2, maxw:310, radius:14 };
+  box.innerHTML = `
+    <div style="font-size:${_s.lbl}px;font-weight:800;letter-spacing:1.4px;color:#f0c040;text-transform:uppercase;margin-bottom:${_s.mb1}px;">✨ Profession Effect</div>
+    <div style="font-size:${_s.name}px;font-weight:900;color:#fff;margin-bottom:${_s.mb2}px;">${entry.displayName}</div>
+    <div style="font-size:${_s.title}px;font-weight:800;color:#f0c040;margin-bottom:${_s.mb3}px;">${fx.title}</div>
+    <div style="font-size:${_s.text}px;color:#bbb;line-height:1.4;">${fx.text}</div>
+  `;
+  box.style.cssText =
+    'display:block;position:absolute;left:50%;top:' + _peTop + 'px;transform:translateX(-50%);z-index:90;' +
+    'background:rgba(10,15,25,0.96);border:1px solid #f0c040;border-radius:' + _s.radius + 'px;' +
+    'padding:' + _s.pad + ';text-align:center;box-shadow:0 0 18px rgba(240,192,64,0.25);' +
+    'pointer-events:none;max-width:' + _s.maxw + 'px;white-space:normal;line-height:1.2;' +
+    'animation:rpPopIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;';
+  clearTimeout(box._hideTimer);
+  box._hideTimer = setTimeout(() => { if (box) box.style.display = 'none'; }, 3800);
+}
+
+function recordResult(winnerIdx) {
+  const wheelID = WHEEL_ORDER[genStep];
+  const entry = segLayout[winnerIdx]?.entry;
+  if (!entry || !wheelID) return;
+  genResults[wheelID] = entry;
+  if (wheelID === 'HP') genStats.HP = Number(entry.HP);
+  genStep++;
+}
+
+// ── SEASON CHAMPION SAVE SYSTEM ────────────────────────────────────
+const SEASON_STORAGE_KEY = 'wheel_of_origin_season_2_champions';
+let currentChampionSaved = false;
+
+function getSavedChampions() {
+  try {
+    return JSON.parse(localStorage.getItem(SEASON_STORAGE_KEY) || '[]');
+  } catch { return []; }
+}
+
+function buildChampionSaveData() {
+  const savedChampions = getSavedChampions();
+  const fs = genStats; // already reconciled by showEndCard
+  return {
+    season: 1,
+    slot: savedChampions.length + 1,
+    name: (typeof championName !== 'undefined' && championName) ? championName : 'Unnamed Champion',
+    race:       genResults.Race?.displayName       || null,
+    subrace:    genResults.Subrace?.displayName    || null,
+    profession: genResults.Profession?.displayName || null,
+    stats: {
+      STR: fs.STR || 0,
+      IQ:  fs.IQ  || 0,
+      SPD: fs.SPD || 0,
+      DUR: fs.DUR || 0,
+      PM:  fs.PM  || 0,
+      DEF: fs.DEF || 0,
+    },
+    companion:    genResults.Companion?.displayName    || null,
+    weapon:       genResults.Weapon?.displayName       || null,
+    enchantment:  genResults.Enchantment?.displayName  || null,
+    armor:        genResults.Armor?.displayName        || null,
+    power:        genResults.Power?.displayName        || null,
+    blessingCurse:genResults.BlessingCurse?.displayName|| null,
+    tiers: {
+      race:        genResults.Race?.tier        || null,
+      subrace:     genResults.Subrace?.tier     || null,
+      profession:  genResults.Profession?.tier  || null,
+      companion:   genResults.Companion?.tier   || null,
+      weapon:      genResults.Weapon?.tier      || null,
+      enchantment: genResults.Enchantment?.tier || null,
+      armor:       genResults.Armor?.tier       || null,
+      power:       genResults.Power?.tier       || null,
+      blessingCurse:genResults.BlessingCurse?.tier||null,
+    },
+    combos: triggeredCombos.map(c => c.name),
+    powerScore: (fs.STR||0)+(fs.IQ||0)+(fs.SPD||0)+(fs.DUR||0)+(fs.PM||0)+(fs.DEF||0),
+    rawResults: {
+      Race:         genResults.Race         || null,
+      Subrace:      genResults.Subrace      || null,
+      Profession:   genResults.Profession   || null,
+      STR:          genResults.STR          || null,
+      IQ:           genResults.IQ           || null,
+      Speed:        genResults.Speed        || null,
+      Dura:         genResults.Dura         || null,
+      Companion:    genResults.Companion    || null,
+      Weapon:       genResults.Weapon       || null,
+      Enchantment:  genResults.Enchantment  || null,
+      Armor:        genResults.Armor        || null,
+      Power:        genResults.Power        || null,
+      BlessingCurse:genResults.BlessingCurse|| null,
+    },
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function saveChampionToSeason() {
+  if (currentChampionSaved) {
+    const msg = document.getElementById('save-champion-msg');
+    if (msg) { msg.textContent = 'Already saved.'; msg.style.color = '#f0c040'; }
+    return;
+  }
+  const champions = getSavedChampions();
+  const data = buildChampionSaveData();
+  champions.push(data);
+  try {
+    localStorage.setItem(SEASON_STORAGE_KEY, JSON.stringify(champions));
+    currentChampionSaved = true;
+    updateSavedChampionCount();
+    const msg = document.getElementById('save-champion-msg');
+    if (msg) { msg.textContent = `Saved as Champion #${data.slot}!`; msg.style.color = '#66ee88'; }
+    const btn = document.getElementById('save-champion-btn');
+    if (btn) { btn.style.opacity = '0.5'; btn.style.cursor = 'default'; }
+  } catch (e) {
+    const msg = document.getElementById('save-champion-msg');
+    if (msg) { msg.textContent = 'Save failed.'; msg.style.color = '#ff5544'; }
+  }
+}
+
+function exportSeasonJSON() {
+  const champions = getSavedChampions();
+  const payload = {
+    season: 1,
+    totalChampions: champions.length,
+    exportedAt: new Date().toISOString(),
+    champions,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wheel_of_origin_season_2_champions.json';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+}
+
+function clearSavedSeason() {
+  if (!confirm('Clear all saved champions? This cannot be undone.')) return;
+  localStorage.removeItem(SEASON_STORAGE_KEY);
+  currentChampionSaved = false;
+  updateSavedChampionCount();
+  const msg = document.getElementById('save-champion-msg');
+  if (msg) { msg.textContent = 'Season cleared.'; msg.style.color = '#aaa'; }
+  const btn = document.getElementById('save-champion-btn');
+  if (btn) { btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
+
+function updateSavedChampionCount() {
+  const count = getSavedChampions().length;
+  const el = document.getElementById('saved-champion-count');
+  if (el) el.textContent = `Saved Champions: ${count} / 128`;
+}
+
+// ── END CARD ───────────────────────────────────────────────────────
+function showEndCard() {
+  // Original end panel, reduced to text results. No portrait, sprite or map.
+  generatorActive = false;
+  pendingAdvance = false;
+  clearLastSpinCheckpoint();
+  document.getElementById('header-center').style.display = 'none';
+  document.getElementById('wheel-area').style.display = 'none';
+  const panel = document.getElementById('end-card-panel');
+  panel.replaceChildren();
+  panel.style.display = 'flex';
+  panel.style.flex = '1';
+  const title = document.createElement('h2');
+  title.textContent = 'ALL SPINS COMPLETE';
+  const name = document.createElement('p');
+  name.className = 'retro-result-name';
+  name.textContent = championName;
+  panel.append(title, name);
+  for (const wheelID of WHEEL_ORDER) {
+    const row = document.createElement('div'); row.className = 'retro-result-row';
+    const key = document.createElement('span'); key.textContent = RETRO_WHEELS[wheelID].label;
+    const value = document.createElement('strong'); value.textContent = genResults[wheelID]?.displayName ?? '-';
+    row.append(key,value); panel.append(row);
+  }
+}
+
+// ── WHEEL ICONS ───────────────────────────────────────────────────
+function getWheelIcon(wheelID) {
+  const glyphs = {
+    Race:['01100110','01100110','00111100','00011000','00111100','01100110','01100110'],
+    Profession:['00000011','00000111','00001110','01011100','00111000','00110000','01101000','11000100'],
+    Spawn:['00111100','01111110','11100111','11100111','01111110','00111100','00011000','00011000'],
+    HP:['01100110','11111111','11111111','11111111','01111110','00111100','00011000'],
+    SpecialTrait:['00011000','00011000','00111100','11111111','11111111','00111100','00011000','00011000'],
+    Trouble:['00011000','00111100','00100100','01100110','01100110','11011011','11111111']
+  };
+  let pixels = '';
+  (glyphs[wheelID] || glyphs.Race).forEach((row,y) => [...row].forEach((v,x) => { if (v==='1') pixels += '<rect x="'+x+'" y="'+y+'" width="1" height="1"/>'; }));
+  return '<svg viewBox="0 0 8 8" width="32" height="32" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">'+pixels+'</svg>';
+}
+
+function updateWheelIcon(wheelID) {
+  document.getElementById('wheel-icon').innerHTML = getWheelIcon(wheelID);
+}
+
+// ── DISPLAY LABEL HELPER ──────────────────────────────────────────
+const STAT_WHEEL_LABELS = {
+  STR: [
+    'Jinxed', 'Strengthless', 'Feeble', 'Weak', 'Capable', 'Strong',
+    'Mighty', 'Monstrous', 'Titanic', 'Colossal', 'Godlike'
+  ],
+  IQ: [
+    'Jinxed', 'Mindless', 'Dull', 'Simple', 'Sharp', 'Clever',
+    'Brilliant', 'Genius', 'Mastermind', 'Transcendent', 'Omniscient'
+  ],
+  Speed: [
+    'Jinxed', 'Immobile', 'Sluggish', 'Slow', 'Nimble', 'Quick',
+    'Swift', 'Rapid', 'Lightning', 'Blinding', 'Instant'
+  ],
+  Dura: [
+    'Jinxed', 'Brittle', 'Fragile', 'Delicate', 'Sturdy', 'Tough',
+    'Hardened', 'Resilient', 'Unbreakable', 'Immortal', 'Eternal'
+  ],
+};
+
+function getDisplayLabel(entry) { return entry.displayName;
+}
+
+
+
+const canvas = document.getElementById('wheel-canvas');
+const ctx = canvas.getContext('2d');
+const spinCanvas = document.getElementById('wheel-spin-canvas');
+const spinCtx = spinCanvas && typeof spinCanvas.getContext === 'function'
+  ? spinCanvas.getContext('2d')
+  : null;
+const resultText = document.getElementById('result-text');
+
+function getResultTextFit(text, maxW) {
+  const cache = getResultTextFit._cache || (getResultTextFit._cache = new Map());
+  const cacheKey = `${maxW}|${text}`;
+  if (cache.has(cacheKey)) return cache.get(cacheKey);
+
+  // Use canvas to measure — works on all devices regardless of font loading
+  const canvas = getResultTextFit._canvas || (getResultTextFit._canvas = document.createElement('canvas'));
+  const measureCtx = canvas.getContext('2d');
+
+  let fs = 38;
+  let ls = 3;
+
+  function measureWidth() {
+    measureCtx.font = `900 ${fs}px 'Pixel', sans-serif`;
+    let w = 0;
+    for (const ch of text) w += measureCtx.measureText(ch).width;
+    w += ls * Math.max(0, text.length - 1);
+    return w;
+  }
+
+  // Shrink font until it fits
+  while (measureWidth() > maxW && fs > 11) {
+    fs -= 1;
+    ls = Math.max(0, ls - 0.15);
+  }
+
+  const fit = { fontSize: fs, letterSpacing: ls.toFixed(2) };
+  cache.set(cacheKey, fit);
+  return fit;
+}
+
+function getResultTextMaxWidth() {
+  return 342; // Logical SVG units; the whole headline scales with its 390-wide viewBox.
+}
+
+function warmResultTextFits(layout) {
+  const maxW = getResultTextMaxWidth();
+  const seen = new Set();
+  for (const seg of layout || []) {
+    const text = getDisplayLabel(seg.entry);
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    getResultTextFit(text, maxW);
+  }
+}
+
+function setSvgAttributeIfChanged(element, name, value) {
+  const next = String(value);
+  if (!element.getAttribute || element.getAttribute(name) !== next) {
+    element.setAttribute(name, next);
+  }
+}
+
+function removeSvgAttributeIfPresent(element, name) {
+  if (!element.hasAttribute || element.hasAttribute(name)) {
+    element.removeAttribute(name);
+  }
+}
+
+function fitResultText() {
+  const el = resultText;
+  const svg = document.getElementById('result-text-svg');
+  if (!el || !svg) return;
+
+  const text = el.textContent;
+
+  // Avoid repeatedly invalidating the filtered SVG headline on every Race
+  // segment crossing when its fitted attributes have not actually changed.
+  removeSvgAttributeIfPresent(el, 'textLength');
+  removeSvgAttributeIfPresent(el, 'lengthAdjust');
+
+  if (!text || text === '???') {
+    setSvgAttributeIfChanged(el, 'font-size', '38');
+    setSvgAttributeIfChanged(el, 'letter-spacing', '3');
+    return;
+  }
+
+  const fit = getResultTextFit(text, getResultTextMaxWidth());
+
+  setSvgAttributeIfChanged(el, 'font-size', fit.fontSize);
+  setSvgAttributeIfChanged(el, 'letter-spacing', fit.letterSpacing);
+}
+
+let currentRotation = 0; // absolute rotation offset applied to wheel
+let spinning = false;
+let pendingAdvance = false;
+let winnerSeg = null; // set when wheel stops, cleared on next spin
+let isSpinningRenderMode = false;
+let compositeSpinActive = false;
+let compositeSpinAnimation = null;
+let canvasSize = 300;
+
+// Current layout: array of {entry, weight, startAngle, endAngle, centerAngle, color, textColor, label}
+let segLayout = [];
+const DENSE_LABEL_WHEELS = new Set([
+  'Profession', 'Companion', 'Weapon', 'Enchantment',
+  'Armor', 'Power', 'BlessingCurse'
+]);
+
+// ── RACE / PROFESSION WHEEL EDITOR ───────────────────────────────
+// Kept completely separate from generator/checkpoint state. Only stable entry
+// ids, optional colours and their visual order are persisted.
+const RACE_EDITOR_STORAGE_KEY = 'wheel_of_origin_retro_race_editor_v1';
+const PROFESSION_EDITOR_STORAGE_KEY = 'wheel_of_origin_retro_role_editor_v1';
+const WHEEL_EDITOR_IDS = new Set(['Race','Profession']);
+const RACE_EDITOR_TIERS = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+const RACE_EDITOR_TIER_SORT = {
+  Mythic:0, OP:0, Legendary:1, Epic:2, Rare:3,
+  Uncommon:4, Common:5, Trash:5, None:6
+};
+const DEFAULT_RACE_EDITOR_ORDER = WHEEL_ENTRIES.filter(e => e.wheelID === 'Race').map(e => e.id);
+const DEFAULT_RACE_EDITOR_COLORS = {};
+
+function normalizeRaceEditorHex(value) {
+  const match = String(value || '').trim().match(/^#?([0-9a-f]{6})$/i);
+  return match ? `#${match[1].toUpperCase()}` : null;
+}
+
+function getDefaultRaceEditorState() {
+  return {
+    version:1,
+    layoutMode:'tier',
+    order:[...DEFAULT_RACE_EDITOR_ORDER],
+    colors:{...DEFAULT_RACE_EDITOR_COLORS}
+  };
+}
+
+function getDefaultProfessionEditorState() {
+  return { version:1, layoutMode:'tier', order:[], colors:{} };
+}
+
+function getDefaultWheelEditorState(wheelID) {
+  return wheelID === 'Profession'
+    ? getDefaultProfessionEditorState()
+    : getDefaultRaceEditorState();
+}
+
+function sanitizeWheelEditorState(wheelID, input) {
+  const safeWheelID = WHEEL_EDITOR_IDS.has(wheelID) ? wheelID : 'Race';
+  const fallback = getDefaultWheelEditorState(safeWheelID);
+  if (!input || typeof input !== 'object') return fallback;
+
+  const validIds = new Set(
+    WHEEL_ENTRIES.filter(entry => entry.wheelID === safeWheelID).map(entry => String(entry.id))
+  );
+  const colors = {};
+  if (input.colors && typeof input.colors === 'object') {
+    for (const [rawId, rawColor] of Object.entries(input.colors)) {
+      const id = String(rawId);
+      const color = normalizeRaceEditorHex(rawColor);
+      if (validIds.has(id) && color) colors[id] = color;
+    }
+  }
+
+  const order = [];
+  const seen = new Set();
+  if (Array.isArray(input.order)) {
+    for (const rawId of input.order) {
+      const id = String(rawId);
+      if (!validIds.has(id) || seen.has(id)) continue;
+      seen.add(id);
+      order.push(Number(id));
+    }
+  }
+
+  const layoutMode = ['mixed','tier','custom'].includes(input.layoutMode)
+    ? input.layoutMode
+    : 'mixed';
+  return { version:1, layoutMode, order, colors };
+}
+
+function sanitizeRaceEditorState(input) {
+  return sanitizeWheelEditorState('Race', input);
+}
+
+function sanitizeProfessionEditorState(input) {
+  return sanitizeWheelEditorState('Profession', input);
+}
+
+function loadWheelEditorState(wheelID) {
+  const storageKey = wheelID === 'Profession'
+    ? PROFESSION_EDITOR_STORAGE_KEY
+    : RACE_EDITOR_STORAGE_KEY;
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    return sanitizeWheelEditorState(wheelID, stored);
+  } catch (_) {
+    return getDefaultWheelEditorState(wheelID);
+  }
+}
+
+function loadRaceEditorState() {
+  return loadWheelEditorState('Race');
+}
+
+let raceEditorState = loadWheelEditorState('Race');
+let professionEditorState = loadWheelEditorState('Profession');
+let activeWheelEditorID = 'Race';
+let raceEditorDirty = false;
+const wheelEditorDirtyWheels = new Set();
+let raceEditorSaveTimer = 0;
+let raceEditorStatusTimer = 0;
+let raceEditorDraggedRow = null;
+let raceEditorDragPointer = null;
+
+function getWheelEditorState(wheelID = activeWheelEditorID) {
+  return wheelID === 'Profession' ? professionEditorState : raceEditorState;
+}
+
+function setWheelEditorState(wheelID, state) {
+  if (wheelID === 'Profession') professionEditorState = state;
+  else raceEditorState = state;
+}
+
+function getWheelEditorStorageKey(wheelID = activeWheelEditorID) {
+  return wheelID === 'Profession'
+    ? PROFESSION_EDITOR_STORAGE_KEY
+    : RACE_EDITOR_STORAGE_KEY;
+}
+
+function markWheelEditorDirty(wheelID = activeWheelEditorID) {
+  raceEditorDirty = true;
+  wheelEditorDirtyWheels.add(wheelID);
+}
+
+function setRaceEditorStatus(message, isError = false) {
+  const el = document.getElementById('race-editor-status');
+  if (!el) return;
+  el.textContent = message || '';
+  el.style.color = isError ? '#ee7777' : '#6fbc7c';
+  clearTimeout(raceEditorStatusTimer);
+  if (message) {
+    raceEditorStatusTimer = setTimeout(() => {
+      if (el.textContent === message) el.textContent = '';
+    }, 1800);
+  }
+}
+
+function saveRaceEditorState(showStatus = true) {
+  clearTimeout(raceEditorSaveTimer);
+  raceEditorSaveTimer = 0;
+  const sanitized = sanitizeWheelEditorState(
+    activeWheelEditorID,
+    getWheelEditorState(activeWheelEditorID)
+  );
+  setWheelEditorState(activeWheelEditorID, sanitized);
+  try {
+    localStorage.setItem(
+      getWheelEditorStorageKey(activeWheelEditorID),
+      JSON.stringify(sanitized)
+    );
+    if (showStatus) setRaceEditorStatus('Saved');
+    return true;
+  } catch (_) {
+    setRaceEditorStatus('Could not save on this device', true);
+    return false;
+  }
+}
+
+function scheduleRaceEditorSave() {
+  clearTimeout(raceEditorSaveTimer);
+  raceEditorSaveTimer = setTimeout(() => saveRaceEditorState(true), 140);
+}
+
+function getRaceEditorContrastText() {
+  // Wheel labels stay white on every custom colour. The existing dark outline
+  // keeps them readable on pale segments without switching them to black.
+  return '#ffffff';
+}
+
+function getWheelEditorTierGroupedEntries(wheelID = activeWheelEditorID) {
+  return WHEEL_ENTRIES
+    .filter(entry => entry.wheelID === wheelID)
+    .slice()
+    .sort((a, b) => {
+      const ta = RACE_EDITOR_TIER_SORT[a.tier] ?? 5;
+      const tb = RACE_EDITOR_TIER_SORT[b.tier] ?? 5;
+      if (ta !== tb) return ta - tb;
+      return Number(a.baseWeight || 0) - Number(b.baseWeight || 0)
+        || WHEEL_ENTRIES.indexOf(a) - WHEEL_ENTRIES.indexOf(b);
+    });
+}
+
+function getRaceTierGroupedEntriesForEditor() {
+  return getWheelEditorTierGroupedEntries('Race');
+}
+
+function applyWheelEditorOrder(wheelID, tierGroupedEntries) {
+  const editorState = getWheelEditorState(wheelID);
+  if (editorState.layoutMode === 'tier') {
+    if (editorState.order.length === 0) return [...tierGroupedEntries];
+    const savedPosition = new Map(
+      editorState.order.map((id, index) => [String(id), index])
+    );
+    return [...tierGroupedEntries].sort((a, b) => {
+      const ta = RACE_EDITOR_TIER_SORT[a.tier] ?? 5;
+      const tb = RACE_EDITOR_TIER_SORT[b.tier] ?? 5;
+      if (ta !== tb) return ta - tb;
+      const pa = savedPosition.get(String(a.id));
+      const pb = savedPosition.get(String(b.id));
+      if (pa !== undefined || pb !== undefined) {
+        if (pa === undefined) return 1;
+        if (pb === undefined) return -1;
+        if (pa !== pb) return pa - pb;
+      }
+      return Number(a.effectiveWeight ?? a.baseWeight ?? 0)
+        - Number(b.effectiveWeight ?? b.baseWeight ?? 0) || Number(a.id) - Number(b.id);
+    });
+  }
+
+  const mixed = interleaveRaceEntriesByTier(tierGroupedEntries);
+  if (editorState.layoutMode === 'mixed') return mixed;
+
+  const byId = new Map(mixed.map(entry => [String(entry.id), entry]));
+  const ordered = [];
+  const used = new Set();
+  for (const rawId of editorState.order) {
+    const id = String(rawId);
+    const entry = byId.get(id);
+    if (!entry || used.has(id)) continue;
+    ordered.push(entry);
+    used.add(id);
+  }
+  // New races are appended in the safe Mixed MMO order and never delete an
+  // existing custom layout.
+  for (const entry of mixed) {
+    const id = String(entry.id);
+    if (used.has(id)) continue;
+    ordered.push(entry);
+    used.add(id);
+  }
+  return ordered;
+}
+
+function applyRaceEditorOrder(tierGroupedEntries) {
+  return applyWheelEditorOrder('Race', tierGroupedEntries);
+}
+
+function getRaceEditorOrderedEntries() {
+  return applyWheelEditorOrder(
+    activeWheelEditorID,
+    getWheelEditorTierGroupedEntries(activeWheelEditorID)
+  );
+}
+
+function escapeRaceEditorHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getRaceEditorPresetOptions() {
+  return [
+    '<option value="">Quick color</option>',
+    '<option value="default">Tier default</option>',
+    ...RACE_EDITOR_TIERS.map(tier => `<option value="${tier}">${tier}</option>`),
+  ].join('');
+}
+
+function updateRaceEditorPresetButtons() {
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  document.querySelectorAll('.race-editor-preset').forEach(button => {
+    button.classList.toggle('active', button.dataset.layoutMode === editorState.layoutMode);
+  });
+  document.querySelectorAll('.race-editor-wheel-tab').forEach(button => {
+    button.classList.toggle('active', button.dataset.editorWheel === activeWheelEditorID);
+  });
+}
+
+function renderRaceEditorList() {
+  const list = document.getElementById('race-editor-list');
+  if (!list) return;
+  const entries = getRaceEditorOrderedEntries();
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  const presetOptions = getRaceEditorPresetOptions();
+  const tierCounts = {};
+  const tierSeen = {};
+  entries.forEach(entry => { tierCounts[entry.tier] = (tierCounts[entry.tier] || 0) + 1; });
+  list.innerHTML = entries.map((entry, index) => {
+    const id = String(entry.id);
+    const idxInTier = tierSeen[entry.tier] || 0;
+    tierSeen[entry.tier] = idxInTier + 1;
+    const standard = standardRarityGradientColor(
+      entry.tier,
+      idxInTier,
+      tierCounts[entry.tier] || 1
+    );
+    const fallback = getSegmentColor(entry, activeWheelEditorID, index, entries.length);
+    const defaultColor = fallback.bg; // Match the actual retro wheel.
+    const color = editorState.colors[id] || defaultColor;
+    const tierColor = STANDARD_RARITY_GRADIENTS[entry.tier]?.[0]
+      || (RACE_COLORS[entry.tier] || RACE_COLORS.Common).bg;
+    return `
+      <div class="race-editor-row" data-race-id="${id}" data-race-tier="${escapeRaceEditorHtml(entry.tier)}" data-default-color="${defaultColor}" style="--race-row-color:${color}">
+        <button class="race-drag-handle" type="button" aria-label="${escapeRaceEditorHtml(entry.displayName)} verschieben" title="Ziehen">☰</button>
+        <div class="race-editor-main">
+          <div class="race-editor-name-line">
+            <span class="race-editor-name">${escapeRaceEditorHtml(entry.displayName)}</span>
+            <span class="race-editor-tier" style="background:${tierColor}">${escapeRaceEditorHtml(entry.tier)}</span>
+          </div>
+          <div class="race-editor-color-line">
+            <input class="race-color-picker" type="color" value="${color}" aria-label="Farbe für ${escapeRaceEditorHtml(entry.displayName)}">
+            <select class="race-color-preset-select" aria-label="Standardfarbe für ${escapeRaceEditorHtml(entry.displayName)}">${presetOptions}</select>
+            <input class="race-color-hex" type="text" inputmode="text" maxlength="7" value="${color}" aria-label="Hex-Farbe für ${escapeRaceEditorHtml(entry.displayName)}">
+            <button class="race-color-reset" type="button" aria-label="${escapeRaceEditorHtml(entry.displayName)} auf Standardfarbe zurücksetzen" title="Standardfarbe">↺</button>
+          </div>
+        </div>
+        <div class="race-editor-move">
+          <button class="race-move-btn" type="button" data-move="up" aria-label="Nach oben">▲</button>
+          <button class="race-move-btn" type="button" data-move="down" aria-label="Nach unten">▼</button>
+        </div>
+      </div>`;
+  }).join('');
+  updateRaceEditorPresetButtons();
+}
+
+function setRaceEditorRowColor(row, color, useDefault = false) {
+  if (!row) return false;
+  const id = String(row.dataset.raceId || '');
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  const normalized = useDefault ? null : normalizeRaceEditorHex(color);
+  if (!useDefault && !normalized) return false;
+
+  if (useDefault) delete editorState.colors[id];
+  else editorState.colors[id] = normalized;
+
+  const visibleColor = useDefault
+    ? (normalizeRaceEditorHex(row.dataset.defaultColor) || '#6E7480')
+    : normalized;
+  row.style.setProperty('--race-row-color', visibleColor);
+  const picker = row.querySelector('.race-color-picker');
+  const hex = row.querySelector('.race-color-hex');
+  const select = row.querySelector('.race-color-preset-select');
+  if (picker) picker.value = visibleColor;
+  if (hex) hex.value = visibleColor;
+  if (select) select.value = '';
+  markWheelEditorDirty();
+  scheduleRaceEditorSave();
+  return true;
+}
+
+function saveRaceEditorOrderFromDom() {
+  const rows = document.querySelectorAll('#race-editor-list .race-editor-row');
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  editorState.order = [...rows].map(row => Number(row.dataset.raceId));
+  editorState.layoutMode = 'custom';
+  markWheelEditorDirty();
+  updateRaceEditorPresetButtons();
+  saveRaceEditorState(true);
+}
+
+function moveRaceEditorRow(row, direction) {
+  if (!row?.parentNode) return;
+  if (direction === 'up') {
+    const previous = row.previousElementSibling;
+    if (previous) row.parentNode.insertBefore(row, previous);
+  } else {
+    const next = row.nextElementSibling;
+    if (next) row.parentNode.insertBefore(next, row);
+  }
+  saveRaceEditorOrderFromDom();
+  row.scrollIntoView?.({ block:'nearest' });
+}
+
+function beginRaceEditorDrag(event, row) {
+  if (!row || event.button > 0) return;
+  event.preventDefault();
+  raceEditorDraggedRow = row;
+  raceEditorDragPointer = event.pointerId;
+  row.classList.add('dragging');
+  event.currentTarget?.setPointerCapture?.(event.pointerId);
+}
+
+function moveRaceEditorDrag(event) {
+  if (!raceEditorDraggedRow || event.pointerId !== raceEditorDragPointer) return;
+  event.preventDefault();
+  const list = document.getElementById('race-editor-list');
+  if (!list) return;
+  const listRect = list.getBoundingClientRect();
+  if (event.clientY < listRect.top + 32) list.scrollTop -= 12;
+  else if (event.clientY > listRect.bottom - 32) list.scrollTop += 12;
+
+  const rows = [...list.querySelectorAll('.race-editor-row:not(.dragging)')];
+  const before = rows.find(row => {
+    const rect = row.getBoundingClientRect();
+    return event.clientY < rect.top + rect.height / 2;
+  });
+  if (before) list.insertBefore(raceEditorDraggedRow, before);
+  else list.appendChild(raceEditorDraggedRow);
+}
+
+function endRaceEditorDrag(event) {
+  if (!raceEditorDraggedRow || event.pointerId !== raceEditorDragPointer) return;
+  raceEditorDraggedRow.classList.remove('dragging');
+  raceEditorDraggedRow = null;
+  raceEditorDragPointer = null;
+  saveRaceEditorOrderFromDom();
+}
+
+function selectRaceEditorLayoutMode(mode) {
+  if (!['mixed','tier','custom'].includes(mode)) return;
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  if (mode === 'tier') {
+    const tierEntries = getWheelEditorTierGroupedEntries(activeWheelEditorID);
+    const byId = new Map(tierEntries.map(entry => [String(entry.id), entry]));
+    const preferredOrder = activeWheelEditorID === 'Race'
+      ? DEFAULT_RACE_EDITOR_ORDER
+      : tierEntries.map(entry => entry.id);
+    editorState.order = [
+      ...preferredOrder.filter(id => byId.has(String(id))),
+      ...tierEntries.map(entry => entry.id).filter(id => !preferredOrder.includes(id))
+    ];
+  } else if (mode === 'custom' && editorState.order.length === 0) {
+    const rows = document.querySelectorAll('#race-editor-list .race-editor-row');
+    editorState.order = [...rows].map(row => Number(row.dataset.raceId));
+  }
+  editorState.layoutMode = mode;
+  markWheelEditorDirty();
+  saveRaceEditorState(true);
+  renderRaceEditorList();
+}
+
+function selectWheelEditorWheel(wheelID) {
+  if (!WHEEL_EDITOR_IDS.has(wheelID) || wheelID === activeWheelEditorID) return;
+  if (raceEditorSaveTimer) saveRaceEditorState(false);
+  activeWheelEditorID = wheelID;
+  renderRaceEditorList();
+  const list = document.getElementById('race-editor-list');
+  if (list) list.scrollTop = 0;
+  setRaceEditorStatus('');
+}
+
+function refreshWheelFromEditor(wheelID) {
+  const currentWheelID = generatorActive && genStep < WHEEL_ORDER.length
+    ? WHEEL_ORDER[genStep]
+    : null;
+  if (currentWheelID !== wheelID || spinning || pendingAdvance) return;
+  endCompositedSpin();
+  const parentResult = genResults['Race']?.displayName || null;
+  const entries = getEntriesForWheel(wheelID, parentResult);
+  if (!entries.length) return;
+  segLayout = buildSegments(entries, wheelID);
+  currentRotation = 0;
+  winnerSeg = null;
+  lastTickSeg = null;
+  drawWheel._spinLayerLayout = null;
+  drawWheel._spinLayerWheelID = null;
+  drawWheel(currentRotation);
+  warmResultTextFits(segLayout);
+}
+
+function refreshRaceWheelFromEditor() {
+  refreshWheelFromEditor('Race');
+}
+
+function openRaceEditor() {
+  if (spinning || pendingAdvance) return false;
+  const currentWheelID = generatorActive && genStep < WHEEL_ORDER.length
+    ? WHEEL_ORDER[genStep]
+    : null;
+  if (WHEEL_EDITOR_IDS.has(currentWheelID)) activeWheelEditorID = currentWheelID;
+  renderRaceEditorList();
+  const overlay = document.getElementById('race-editor-overlay');
+  if (!overlay) return false;
+  overlay.classList.add('open');
+  document.getElementById('race-editor-list').scrollTop = 0;
+  setRaceEditorStatus('');
+  return true;
+}
+
+function closeRaceEditor() {
+  if (raceEditorSaveTimer) saveRaceEditorState(false);
+  document.getElementById('race-editor-overlay')?.classList.remove('open');
+  if (raceEditorDirty) {
+    for (const wheelID of wheelEditorDirtyWheels) refreshWheelFromEditor(wheelID);
+  }
+  raceEditorDirty = false;
+  wheelEditorDirtyWheels.clear();
+}
+
+function exportRaceEditorJSON() {
+  saveRaceEditorState(false);
+  const editorState = getWheelEditorState(activeWheelEditorID);
+  const payload = {
+    kind: 'wheel-of-origin-segment-layout',
+    version: 1,
+    wheelID: activeWheelEditorID,
+    exportedAt: new Date().toISOString(),
+    editorState,
+  };
+  if (activeWheelEditorID === 'Race') payload.raceEditor = editorState;
+  else payload.professionEditor = editorState;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `wheel_of_origin_${activeWheelEditorID.toLowerCase()}_layout.json`;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  setTimeout(() => {
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }, 100);
+  setRaceEditorStatus('Layout exported');
+}
+
+async function importRaceEditorJSON(file) {
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    const targetWheelID = WHEEL_EDITOR_IDS.has(parsed?.wheelID)
+      ? parsed.wheelID
+      : (parsed?.raceEditor
+          ? 'Race'
+          : (parsed?.professionEditor ? 'Profession' : activeWheelEditorID));
+    const candidate = parsed?.editorState
+      || parsed?.wheelEditor
+      || parsed?.raceEditor
+      || parsed?.professionEditor
+      || parsed;
+    activeWheelEditorID = targetWheelID;
+    setWheelEditorState(
+      targetWheelID,
+      sanitizeWheelEditorState(targetWheelID, candidate)
+    );
+    markWheelEditorDirty(targetWheelID);
+    saveRaceEditorState(false);
+    renderRaceEditorList();
+    setRaceEditorStatus('Layout imported');
+  } catch (_) {
+    setRaceEditorStatus('Invalid layout file', true);
+  }
+}
+
+function resetRaceEditor() {
+  if (!confirm(`Reset all ${activeWheelEditorID} colors and the segment order?`)) return;
+  setWheelEditorState(
+    activeWheelEditorID,
+    getDefaultWheelEditorState(activeWheelEditorID)
+  );
+  markWheelEditorDirty();
+  saveRaceEditorState(false);
+  renderRaceEditorList();
+  setRaceEditorStatus(`${activeWheelEditorID} layout reset`);
+}
+
+// The Race wheel is the first visual hook in every recording. Distribute its
+// tier colours around the circle instead of painting six solid rarity blocks.
+// Only array order changes here: entries keep the same effectiveWeight, object
+// identity, stats and selection chance.
+const RACE_MIX_TIER_ORDER = [
+  'Common', 'Rare', 'Uncommon', 'Epic', 'Legendary', 'Mythic',
+  'OP', 'Trash', 'None'
+];
+
+function interleaveRaceEntriesByTier(entries) {
+  if (!Array.isArray(entries) || entries.length < 3) return [...entries];
+
+  const buckets = new Map();
+  for (const entry of entries) {
+    const tier = entry.tier || 'Common';
+    if (!buckets.has(tier)) buckets.set(tier, []);
+    buckets.get(tier).push(entry);
+  }
+
+  const extraTiers = [...buckets.keys()].filter(t => !RACE_MIX_TIER_ORDER.includes(t));
+  const tierOrder = [...RACE_MIX_TIER_ORDER, ...extraTiers];
+  const orderRank = new Map(tierOrder.map((tier, index) => [tier, index]));
+  const originalCounts = new Map();
+  const credits = new Map();
+  for (const tier of tierOrder) {
+    const count = buckets.get(tier)?.length || 0;
+    originalCounts.set(tier, count);
+    credits.set(tier, 0);
+  }
+
+  // Begin on a Common field when available. Apart from giving the circle a
+  // neutral seam, this avoids the first and final wedges sharing a tier in the
+  // current Race data set.
+  const openingTier = buckets.get('Common')?.length
+    ? 'Common'
+    : tierOrder.find(tier => buckets.get(tier)?.length);
+  if (openingTier) credits.set(openingTier, entries.length);
+
+  const mixed = [];
+  let previousTier = null;
+  while (mixed.length < entries.length) {
+    const available = tierOrder.filter(tier => buckets.get(tier)?.length);
+    if (!available.length) break;
+
+    for (const tier of available) {
+      credits.set(tier, credits.get(tier) + originalCounts.get(tier));
+    }
+
+    const nonRepeating = available.filter(tier => tier !== previousTier);
+    const pool = nonRepeating.length ? nonRepeating : available;
+    pool.sort((a, b) =>
+      credits.get(b) - credits.get(a) ||
+      originalCounts.get(b) - originalCounts.get(a) ||
+      orderRank.get(a) - orderRank.get(b)
+    );
+
+    const chosenTier = pool[0];
+    credits.set(chosenTier, credits.get(chosenTier) - entries.length);
+    mixed.push(buckets.get(chosenTier).shift());
+    previousTier = chosenTier;
+  }
+
+  // The wheel is cyclic, so also remove a possible same-tier join between its
+  // last and first wedges. This is a deterministic one-time layout operation.
+  const lastIndex = mixed.length - 1;
+  if (lastIndex > 2 && mixed[0].tier === mixed[lastIndex].tier) {
+    for (let i = 1; i < lastIndex - 1; i++) {
+      const candidate = mixed[i];
+      const tail = mixed[lastIndex];
+      const candidateFitsTail =
+        mixed[lastIndex - 1].tier !== candidate.tier && candidate.tier !== mixed[0].tier;
+      const tailFitsGap =
+        mixed[i - 1].tier !== tail.tier && tail.tier !== mixed[i + 1].tier;
+      if (!candidateFitsTail || !tailFitsGap) continue;
+      mixed[i] = tail;
+      mixed[lastIndex] = candidate;
+      break;
+    }
+  }
+
+  return mixed;
+}
+
+function buildSegments(entries, wheelID) {
+  wheelID = wheelID || entries[0]?.wheelID;
+  const weighted = entries.map(entry => ({...entry,effectiveWeight:getEffectiveWeight(entry,wheelID)})).filter(e => e.effectiveWeight > 0);
+  const sorted = WHEEL_EDITOR_IDS.has(wheelID) ? applyWheelEditorOrder(wheelID,weighted) : weighted;
+  const total = sorted.reduce((s,e) => s + e.effectiveWeight,0);
+  const editor = WHEEL_EDITOR_IDS.has(wheelID) ? getWheelEditorState(wheelID) : null;
+  let angle = 0;
+  return sorted.map((entry,index) => {
+    const span = entry.effectiveWeight / total * Math.PI * 2;
+    const color = editor?.colors[String(entry.id)] || RETRO_PALETTE[entry.id % 100 % RETRO_PALETTE.length];
+    const segment = {entry,weight:entry.effectiveWeight,startAngle:angle,endAngle:angle+span,centerAngle:angle+span/2,
+      color,textColor:getRaceEditorContrastText(color),customColor:true,label:getDisplayLabel(entry)};
+    angle += span; return segment;
+  });
+}
+
+function weightedPickSegment(layout) {
+  const total = layout.reduce((s, s2) => s + s2.weight, 0);
+  let r = Math.random() * total;
+  for (const seg of layout) {
+    r -= seg.weight;
+    if (r <= 0) return seg;
+  }
+  return layout[layout.length - 1];
+}
+
+// Which segment is currently under the top pointer (-PI/2 in wheel-space)
+function getSegmentAtPointer(layout, rotation) {
+  // pointer is at angle -PI/2 in canvas space.
+  // A segment painted at startAngle..endAngle (in wheel-local space)
+  // appears at (startAngle + rotation) in canvas space.
+  // We want: which seg contains (-PI/2 - rotation) mod 2PI in wheel-local space.
+  const PI2 = 2 * Math.PI;
+  const pointerInWheel = ((-Math.PI / 2 - rotation) % PI2 + PI2) % PI2;
+  for (const seg of layout) {
+    if (pointerInWheel >= seg.startAngle && pointerInWheel < seg.endAngle) return seg;
+  }
+  return layout[0];
+}
+
+
+// Farbe auf- (+) oder abdunkeln (-), Faktor -1..1
+function s2Shade(hex, amt) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  if (!m) return hex;
+  const f = (v) => {
+    let n = parseInt(v, 16);
+    n = amt < 0 ? n * (1 + amt) : n + (255 - n) * amt;
+    return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  };
+  return '#' + f(m[1]) + f(m[2]) + f(m[3]);
+}
+
+// Segment geometry is static until the wheel or canvas size changes. Safari
+// can reuse a Path2D much more cheaply than rebuilding dozens of arcs per frame.
+function getCachedSegmentPath(seg, radius) {
+  if (typeof Path2D !== 'function') return null;
+  const key = `${radius}|${seg.startAngle}|${seg.endAngle}`;
+  if (seg._pathKey !== key) {
+    const path = new Path2D();
+    path.moveTo(0, 0);
+    path.arc(0, 0, radius, seg.startAngle, seg.endAngle);
+    path.closePath();
+    seg._path = path;
+    seg._pathKey = key;
+  }
+  return seg._path;
+}
+
+function drawFixedWheelChrome(renderCtx, W) {
+  const r = W * .115, p = Math.max(2, Math.round(W/110));
+  renderCtx.save();
+  renderCtx.fillStyle = '#ffe39b';
+  renderCtx.beginPath();
+  renderCtx.moveTo(0,-r-W*.03);renderCtx.lineTo(p*2,-r+p);renderCtx.lineTo(-p*2,-r+p);renderCtx.closePath();renderCtx.fill();
+  renderCtx.beginPath();
+  const pts=[[-.55,-1],[.55,-1],[.55,-.8],[.8,-.8],[.8,-.55],[1,-.55],[1,.55],[.8,.55],[.8,.8],[.55,.8],[.55,1],[-.55,1],[-.55,.8],[-.8,.8],[-.8,.55],[-1,.55],[-1,-.55],[-.8,-.55],[-.8,-.8],[-.55,-.8]];
+  pts.forEach(([x,y],i) => i ? renderCtx.lineTo(Math.round(x*r),Math.round(y*r)) : renderCtx.moveTo(Math.round(x*r),Math.round(y*r)));
+  renderCtx.closePath();renderCtx.fillStyle='#171c36';renderCtx.fill();
+  renderCtx.lineWidth=p;renderCtx.strokeStyle='#c4f5d2';renderCtx.stroke();
+  renderCtx.font = Math.round(W*.027)+'px Pixel, monospace';
+  renderCtx.textAlign='center';renderCtx.textBaseline='middle';renderCtx.fillStyle='#ffe39b';
+  renderCtx.fillText('SPIN',0,1);
+  renderCtx.restore();
+}
+
+function drawFixedWheelRings(renderCtx, outerRadius, segmentRadius) {
+  renderCtx.beginPath();renderCtx.arc(0,0,outerRadius,0,Math.PI*2);renderCtx.fillStyle='#192139';renderCtx.fill();
+  renderCtx.strokeStyle='#b9e9c8';renderCtx.lineWidth=2.5;renderCtx.stroke();
+  renderCtx.beginPath();renderCtx.arc(0,0,segmentRadius+1,0,Math.PI*2);renderCtx.strokeStyle='#182039';renderCtx.lineWidth=2;renderCtx.stroke();
+}
+
+// On iPad Safari, repeatedly redrawing even a small wheel can occasionally lose
+// a frame when audio or SVG text is updated at the same time. Capture every
+// finished wheel face once and let Safari's compositor rotate that single
+// layer. The normal high-resolution vector wheel is restored at landing.
+function captureSpinLayer(rotation) {
+  if (!spinCanvas || !spinCtx) return;
+  if (window.innerWidth <= 600) return;
+  if (!segLayout.length || spinning || winnerSeg) return;
+  if (Math.abs(rotation) > 0.000001) return;
+
+  if (spinCanvas.width !== canvas.width || spinCanvas.height !== canvas.height) {
+    spinCanvas.width = canvas.width;
+    spinCanvas.height = canvas.height;
+  }
+  spinCanvas.style.width = `${canvasSize}px`;
+  spinCanvas.style.height = `${canvasSize}px`;
+  spinCtx.setTransform(1, 0, 0, 1, 0, 0);
+  spinCtx.clearRect(0, 0, spinCanvas.width, spinCanvas.height);
+  // Called before the fixed hub and pointer are drawn, so only the rotating
+  // wheel face is copied to this layer.
+  spinCtx.drawImage(canvas, 0, 0);
+  drawWheel._spinLayerLayout = segLayout;
+  drawWheel._spinLayerWheelID = WHEEL_ORDER[genStep];
+  drawWheel._spinLayerBaseRotation = rotation;
+}
+
+function drawSpinChromeOnly() {
+  const W = canvasSize;
+  const dpr = canvas._dpr || 1;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.translate(W / 2, W / 2);
+  // The cached layer already contains the circular outer rings. They are
+  // rotationally symmetric, so only hub and pointer need this fixed overlay.
+  drawFixedWheelChrome(ctx, W);
+  ctx.restore();
+}
+
+function beginCompositedSpin(startRotation, finalRotation, duration) {
+  if (!spinCanvas || !spinCtx) return false;
+  if (drawWheel._spinLayerLayout !== segLayout) return false;
+  if (drawWheel._spinLayerWheelID !== WHEEL_ORDER[genStep]) return false;
+  if (spinCanvas.width !== canvas.width || spinCanvas.height !== canvas.height) return false;
+
+  compositeSpinActive = true;
+  spinCanvas.style.display = 'block';
+  spinCanvas.style.willChange = 'transform';
+  const baseRotation = drawWheel._spinLayerBaseRotation || 0;
+  spinCanvas.style.transform = `rotate(${startRotation - baseRotation}rad)`;
+
+  // A transform-only Web Animation is evaluated by Safari's compositor. Even
+  // if audio or the changing SVG headline briefly occupies the JavaScript main
+  // thread, the visible wheel therefore keeps moving smoothly. Dense exact
+  // cubic samples preserve the existing spin curve and final landing angle.
+  compositeSpinAnimation = null;
+  if (typeof spinCanvas.animate === 'function'
+      && Number.isFinite(finalRotation) && Number.isFinite(duration) && duration > 0) {
+    try {
+      const keyframes = [];
+      const keyframeSteps = 120;
+      for (let i = 0; i <= keyframeSteps; i++) {
+        const t = i / keyframeSteps;
+        const ease = 1 - Math.pow(1 - t, 3);
+        const angle = startRotation + (finalRotation - startRotation) * ease - baseRotation;
+        keyframes.push({ offset: t, transform: `rotate(${angle}rad)` });
+      }
+      compositeSpinAnimation = spinCanvas.animate(keyframes, {
+        duration,
+        easing: 'linear',
+        fill: 'forwards',
+      });
+    } catch (_) {
+      compositeSpinAnimation = null;
+    }
+  }
+  drawSpinChromeOnly();
+  return true;
+}
+
+function updateCompositedSpin(rotation) {
+  if (!compositeSpinActive || !spinCanvas) return false;
+  // The native transform animation keeps running without per-frame style
+  // writes. Older Safari versions use the proven requestAnimationFrame path.
+  if (compositeSpinAnimation && compositeSpinAnimation.playState !== 'idle') return true;
+  compositeSpinAnimation = null;
+  spinCanvas.style.transform = `rotate(${rotation - (drawWheel._spinLayerBaseRotation || 0)}rad)`;
+  return true;
+}
+
+function endCompositedSpin() {
+  compositeSpinActive = false;
+  if (!spinCanvas) return;
+  spinCanvas.style.display = 'none';
+  if (compositeSpinAnimation) {
+    try { compositeSpinAnimation.cancel(); } catch (_) {}
+    compositeSpinAnimation = null;
+  }
+  spinCanvas.style.willChange = 'auto';
+  spinCanvas.style.transform = 'none';
+}
+
+function drawWheel(rotation, knownPointerSeg) {
+  const W = canvasSize;
+  const cx = W / 2, cy = W / 2;
+  const OUTER_R = W / 2 - 2;
+  const RING_W  = W * 0.022;
+  const R       = OUTER_R - RING_W;
+  const dpr = canvas._dpr || 1;
+
+  // Determine the pointer segment once per frame. Previously the same linear
+  // search was repeated for every label while the wheel was spinning.
+  const pointerSeg = knownPointerSeg || getSegmentAtPointer(segLayout, rotation);
+
+  ctx.clearRect(0, 0, W * dpr, W * dpr);
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.translate(cx, cy);
+
+  // Outer ring
+  drawFixedWheelRings(ctx, OUTER_R, R);
+
+  // Rotate the whole wheel layer once. All cached segment paths and label
+  // angles can then stay in local wheel coordinates.
+  ctx.save();
+  ctx.rotate(rotation);
+
+  // Draw the flat segment colours first. The alternating shade is cached on
+  // each layout entry because it does not change during a spin.
+  for (let idx = 0; idx < segLayout.length; idx++) {
+    const seg = segLayout[idx];
+
+    // Zwei Nuancen im Wechsel: jedes zweite Segment einen Hauch heller.
+    // Sonst verschmelzen z. B. die 16 grauen Common-Felder zu einem Klumpen.
+    const baseKey = `${seg.color}|${idx & 1}|${seg.customColor ? 1 : 0}`;
+    if (seg._baseKey !== baseKey) {
+      // A custom picker colour is respected exactly. Default palette segments
+      // keep the subtle alternating lift that separates similar neighbours.
+      seg._baseColor = seg.customColor
+        ? seg.color
+        : ((idx % 2) ? s2Shade(seg.color, 0.055) : seg.color);
+      seg._baseKey = baseKey;
+    }
+    ctx.fillStyle = seg._baseColor;
+    const cachedPath = getCachedSegmentPath(seg, R);
+    if (cachedPath) {
+      ctx.fill(cachedPath);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R, seg.startAngle, seg.endAngle);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // The old Season-2 renderer filled every single wedge with its own radial
+  // gradient on every animation frame. On iPad Safari that is considerably
+  // more expensive than the otherwise identical Season-1 renderer. The same
+  // lighting is composited once over the complete disc instead: +6% white in
+  // the centre, neutral at 55%, and -22% black at the rim.
+  // The radial lighting is visually relevant while the wheel is stationary,
+  // but during motion it causes a full-disc alpha blend on every frame. Skip
+  // that invisible-in-motion pass and restore the exact shading at the stop.
+  if (false) { // Flat retro palette; no glossy lighting.
+    const shadeKey = `${R}|${canvas._dpr || 1}|${canvas.width}`;
+    if (drawWheel._shadeKey !== shadeKey) {
+      const shade = ctx.createRadialGradient(0, 0, R * 0.10, 0, 0, R);
+      shade.addColorStop(0.00, 'rgba(255,255,255,0.06)');
+      shade.addColorStop(0.55, 'rgba(255,255,255,0)');
+      shade.addColorStop(1.00, 'rgba(0,0,0,0.22)');
+      drawWheel._shadeGradient = shade;
+      drawWheel._shadeKey = shadeKey;
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, 2 * Math.PI);
+    ctx.fillStyle = drawWheel._shadeGradient;
+    ctx.fill();
+  }
+
+  // Winner dimming is only rendered for the final stationary frame, so it
+  // cannot affect animation performance.
+  if (!spinning && winnerSeg) {
+    for (const seg of segLayout) {
+      if (seg === winnerSeg) continue;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      const cachedPath = getCachedSegmentPath(seg, R);
+      if (cachedPath) {
+        ctx.fill(cachedPath);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, seg.startAngle, seg.endAngle);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  // The previous wedge-by-wedge stroke traced every shared radial border
+  // twice. Draw the same borders as one path and the outer rim as one circle.
+  // 0.5376 is the source-over equivalent of two 0.32-alpha strokes.
+  const borderKey = `${R}|${segLayout.length}`;
+  if (typeof Path2D === 'function' && segLayout._borderKey !== borderKey) {
+    const path = new Path2D();
+    for (const seg of segLayout) {
+      path.moveTo(0, 0);
+      path.lineTo(Math.cos(seg.startAngle) * R, Math.sin(seg.startAngle) * R);
+    }
+    segLayout._borderPath = path;
+    segLayout._borderKey = borderKey;
+  }
+  ctx.strokeStyle = 'rgba(0,0,0,0.5376)';
+  ctx.lineWidth = 0.7;
+  if (segLayout._borderPath) {
+    ctx.stroke(segLayout._borderPath);
+  } else {
+    ctx.beginPath();
+    for (const seg of segLayout) {
+      const edgeKey = `${R}|${seg.startAngle}`;
+      if (seg._edgeKey !== edgeKey) {
+        seg._edgeX = Math.cos(seg.startAngle) * R;
+        seg._edgeY = Math.sin(seg.startAngle) * R;
+        seg._edgeKey = edgeKey;
+      }
+      ctx.moveTo(0, 0);
+      ctx.lineTo(seg._edgeX, seg._edgeY);
+    }
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(0,0,0,0.32)';
+  ctx.lineWidth = 0.7;
+  ctx.stroke();
+
+  // Text — radial, rim to hub
+  // Never skip labels — even tiny Legendary/OP slices get a short readable label.
+  const hubR       = W * 0.115;
+  const textEndR   = hubR + 18;
+  const textStartR = R - 10;
+  const radialSpace = textStartR - textEndR;
+  // iPad/Safari renders the native system sans noticeably crisper than the
+  // rounded Pixel webfont at the small sizes used inside narrow wedges.
+  const wheelLabelFont = 'Pixel, monospace';
+  const wheelLabelWeight = 600;
+  const currentWheelID = WHEEL_ORDER[genStep];
+  const isDenseLabelWheel = DENSE_LABEL_WHEELS.has(currentWheelID);
+
+  function getShortWheelLabel(label, wheelID) {
+    // Stat wheels keep their descriptive name and value, e.g. "Strengthless (1)".
+    if (['STR','IQ','Speed','Dura'].includes(wheelID)) {
+      return label;
+    }
+    // This lookup used to be rebuilt once per segment and animation frame.
+    // Keeping the same table on drawWheel removes that allocation entirely.
+    const exact = drawWheel._shortLabelMap || (drawWheel._shortLabelMap = {
+      'Astral Guardian': 'Astral',
+      'Glitch Entity': 'Glitch',
+      'Soul Reaver': 'Reaver',
+      'Dragonborn': 'Dragon',
+      'Invisible While Nobody Watches': 'Invisible',
+      'Reality Rewrite': 'Rewrite',
+      'One Punch Force': 'One Punch',
+      'Origin Break': 'Origin',
+      'Phoenix Rebirth': 'Rebirth',
+      'Absolute Barrier': 'Barrier',
+      'Celestial Judgment': 'Judgment',
+      'Holy Ascension': 'Ascension',
+      'Infernal Pact': 'Infernal',
+      'Ancient Dragon Flame': 'Dragon Flame',
+      'Titan Core': 'Titan',
+      'Machine Overclock': 'Overclock',
+      'Void Consumption': 'Void',
+      'Blessing of the Sacred Bond': 'Sacred Bond',
+      'Chosen By The Wheel': 'Chosen',
+      'Curse of Weak Arms': 'Weak Arms',
+      'Curse of Empty Head': 'Empty Head',
+      'Curse of Slow Feet': 'Slow Feet',
+      'Curse of Fragile Bones': 'Fragile',
+      'Curse of Bad Armor': 'Bad Armor',
+      'Curse of the Abyss': 'Abyss',
+      'Curse of Glass Cannon': 'Glass Cannon',
+      'Perfect Balance': 'Balance',
+      'Blessing of Strength': 'Strength',
+      'Blessing of Wisdom': 'Wisdom',
+      'Blessing of Speed': 'Speed',
+      'Blessing of Endurance': 'Endurance',
+      'Blessing of Defense': 'Defense',
+      'Blessing of Focus': 'Focus',
+      "Warrior's Oath": 'Oath',
+      "Angel's Favor": 'Favor',
+      "Demon's Bargain": 'Bargain',
+      "Dragon's Mark": 'Dragon Mark',
+      "Titan's Endurance": 'Endurance',
+      "Heaven's Crown": 'Crown',
+      'Origin Mastery': 'Origin',
+      'Astral Projection': 'Astral',
+      'Lightning Control': 'Lightning',
+      'Reality Glitch': 'Glitch',
+      'Mirror Clone': 'Clone',
+      'Spirit Chains': 'Chains',
+      'Shadow Step': 'Shadow',
+      'Stone Skin': 'Stone',
+      'Beast Sense': 'Beast',
+      'Plant Growth': 'Plant',
+      'Blood Magic': 'Blood',
+      'Soul Drain': 'Soul',
+      'Dream Walking': 'Dream',
+      'Metal Bending': 'Metal',
+      'Gravity Pulse': 'Gravity',
+      'Time Slow': 'T. Slow',
+      'Time Stop': 'T. Stop',
+      'Holy Nova': 'H. Nova',
+      'Demonic Surge': 'D. Surge',
+      'Dragon Breath': 'D. Breath',
+      'Void Rift': 'V. Rift',
+      'Storm Lord': 'Storm',
+      'Black Hole': 'B. Hole',
+      'God Mode': 'God',
+      'Bounty Hunter': 'Hunter',
+      'Royal Heir': 'Royal',
+      'Grave Robber': 'Robber',
+      'Dungeon Warden': 'Warden',
+      'Cursed One': 'Cursed',
+      'The Lost': 'Lost',
+      'Shield Sentinel': 'Sentinel',
+      'Rune Hunter': 'Rune',
+      'Beast Whisperer': 'Whisperer',
+      'Final Boss': 'Boss',
+      'No Subrace': 'None',
+      'World-Heart Titan': 'World Titan',
+      'Dragonking Descendant': 'Dragonking',
+      'Bloodforged Demigod': 'Bloodforge',
+      'Stormborn Demigod': 'Stormborn',
+      'Voidborn Demigod': 'Voidborn',
+      'Infernal Demigod': 'Infernal',
+      'Lunar Demigod': 'Lunar',
+      'Tidal Demigod': 'Tidal',
+      'Solar Demigod': 'Solar',
+      'Treasure Goblin': 'Treasure',
+      'Chaos Goblin': 'Chaos',
+      'Trash Goblin': 'Trash Goblin',
+      'Mountain Dwarf': 'Mountain',
+      'Volcano Dwarf': 'Volcano',
+      'Celestial Dwarf': 'Celestial',
+      'Artifice Construct': 'Artifice',
+      'Arcane Automaton': 'Automaton',
+      'Lich Chosen': 'Lich',
+      'Light Elemental': 'Light',
+      'Dark Elemental': 'Dark',
+      'Lightning Elemental': 'Lightning',
+      'Earth Elemental': 'Earth',
+      'Water Elemental': 'Water',
+      'Fire Elemental': 'Fire',
+      'Wind Elemental': 'Wind',
+      // Season 1
+      'Clockwork Doll': 'Clockwork',
+      'Dragon-Kobold': 'D-Kobold',
+      'Labyrinth Minotaur': 'Labyrinth',
+      'Ironhorn Minotaur': 'Ironhorn',
+      'Starhoof Centaur': 'Starhoof',
+      'Broken-Wing Harpy': 'Brk-Wing',
+      'Iceblood Giant': 'Iceblood',
+      'Mountain Frost Giant': 'Mtn Giant',
+      'Exiled Frost Giant': 'Exiled',
+      'Royal Ratfolk': 'Royal Rat',
+      'Plague Ratfolk': 'Plague',
+      'Sewer Ratfolk': 'Sewer Rat',
+      'Moon Crowborn': 'Moon Crow',
+      'Carrion Crowborn': 'Carrion',
+      'Ruby Crystalborn': 'Ruby',
+      'Sapphire Crystalborn': 'Sapphire',
+      'Cracked Crystalborn': 'Cracked',
+      'Nova Starforged': 'Nova',
+      'Comet Starforged': 'Comet',
+      'Dying Starforged': 'Dying',
+      'Wolf-Raised Human': 'Wolf-Hmn',
+      'Cave Survivor': 'Cave',
+      'Monster Dentist': 'Dentist',
+      'Beast Butcher': 'Butcher',
+      'Potion Addict': 'Addict',
+      'Storm Caller': 'S. Caller',
+      'Tax Collector': 'Tax Coll',
+      'Relic Thief': 'Relic',
+      'Arena Medic': 'Medic',
+      'Storm Chef': 'S. Chef',
+      'Void Intern': 'Intern',
+      'Monster Lawyer': 'Lawyer',
+      'Dragon Groomer': 'Groomer',
+      'Battle Bard': 'Bard',
+      'Mimic Trainer': 'Mimic Trn',
+      'Pocket Dragon': 'P. Dragon',
+      'Crystal Beetle': 'C. Beetle',
+      'Clockwork Mouse': 'CW Mouse',
+      'Cursed Teddy Bear': 'Ted Bear',
+      'Healing Snail': 'H. Snail',
+      'Golden Chicken': 'G. Chicken',
+      'Thunder Ram': 'T. Ram',
+      'Mirror Imp': 'M. Imp',
+      'Royal Falcon': 'R. Falcon',
+      'Grave Hound': 'G. Hound',
+      'Solar Stag': 'S. Stag',
+      'Trash Panda': 'Raccoon',
+      'Bone Crow': 'B. Crow',
+      'Meteor Blade': 'Meteor',
+      'Crystal Spear': 'C. Spear',
+      'Void Umbrella': 'Umbrella',
+      'Thunder Pan': 'T. Pan',
+      'Moon Sickle': 'M. Sickle',
+      'Sun Lance': 'S. Lance',
+      'Rune Revolver': 'R. Revolver',
+      'Dragon Tooth Dagger': 'D. Dagger',
+      'Tax Form': 'Tax Form',
+      'Mimic Chest': 'Mimic',
+      'World Root Staff': 'Root Staff',
+      'Storm Fork': 'S. Fork',
+      'Blacksmith Hammer': 'Smith Hmr',
+      'Origin Shard': 'Orign Shd',
+      'Harpoon Gun': 'Harpoon',
+      'Rat King Dagger': 'Rat Dagr',
+      'Clockwork Saw': 'CW Saw',
+      "Bard's Violin Bow": 'Violin Bow',
+      "Rat-King's Mark": 'Rat Mark',
+      'Blessing of the Chef': 'Chef Bless',
+      'Curse of the Tax Office': 'Tax Curse',
+      "Rat King's Favor": 'Rat Favor',
+      'Crystal Heart': 'C. Heart',
+      'Stormborn Omen': 'Storm Omen',
+      "Sun's Approval": 'Sun Aprvl',
+      'Mimic Curse': 'Mimic Crs',
+      'Wish Debt': 'Wish Debt',
+      'Origin Spark': 'Orig Spark',
+      'World Taxed': 'W. Taxed',
+      'Battle Goose Luck': 'Goose Luck',
+      'Pocket Dimension': 'Pocket Dim',
+      'Feral Frenzy': 'Frenzy',
+      'Crystal Prison': 'C. Prison',
+      'Wish Spark': 'W. Spark',
+      'Rat Swarm': 'Rat Swarm',
+      'Storm Kitchen': 'S. Kitchen',
+      'Mirror Army': 'M. Army',
+      'Origin Echo': 'O. Echo',
+      'Bone Cathedral': 'Bone Cath',
+      'Sun Eruption': 'S. Erupt',
+      'Moon Swap': 'M. Swap',
+      'Clock Stopper': 'Clock Stop',
+      'Mimic Body': 'M. Body',
+      'World Root Control': 'Root Ctrl',
+      'Tax Audit Curse': 'Tax Audit',
+      'Chef Apron': 'Apron',
+      'Crystal Plate': 'C. Plate',
+      'Void Cloak': 'V. Cloak',
+      'Rat King Coat': 'Rat Coat',
+      'Storm Mantle': 'S. Mantle',
+      'Sun Crown Armor': 'Sun Crown',
+      'Moon Veil': 'M. Veil',
+      'Mimic Hide Armor': 'Mimic Hide',
+      'World Root Mail': 'Root Mail',
+      'Toy Soldier Suit': 'Toy Suit',
+      'Arena Champion Plate': 'Arena Plt',
+      'Origami Armor': 'Origami',
+    });
+    if (exact[label]) return exact[label];
+    if (wheelID === 'STR')   return label.replace('STR ', 'S');
+    if (wheelID === 'IQ')    return label.replace('IQ ', 'IQ');
+    if (wheelID === 'Speed') return label.replace('Speed ', 'Spd');
+    if (wheelID === 'Dura')  return label.replace('Dura ', 'Dur');
+    return label;
+  }
+
+  function fitTextToRadialSpace(text, maxWidth, startSize, minSize = 7) {
+    let fs = startSize;
+    ctx.font = `${wheelLabelWeight} ${fs}px ${wheelLabelFont}`;
+    while (ctx.measureText(text).width > maxWidth && fs > minSize) {
+      fs -= 0.4;
+      ctx.font = `${wheelLabelWeight} ${fs}px ${wheelLabelFont}`;
+    }
+    if (ctx.measureText(text).width <= maxWidth) return { text, fontSize: fs };
+    let trimmed = text;
+    while (trimmed.length > 2 && ctx.measureText(trimmed + '…').width > maxWidth) {
+      trimmed = trimmed.slice(0, -1);
+    }
+    return { text: trimmed.length > 2 ? trimmed + '…' : text.slice(0, 2), fontSize: Math.max(minSize, fs) };
+  }
+
+  for (const seg of segLayout) {
+    const midA  = seg.centerAngle;
+    const spanA = seg.endAngle - seg.startAngle;
+    const entry = seg.entry || {};
+
+    const isActive = (seg === pointerSeg);
+
+    // ── Always render labels, even while spinning ──
+    // (skip only truly invisible tiny segments)
+    const skipThreshold   = isDenseLabelWheel ? 0.010 : 0.025;
+    const shortThreshold  = isDenseLabelWheel ? 0.032 : 0.045;
+    const mediumThreshold = isDenseLabelWheel ? 0.060 : 0.075;
+
+    if (spanA < skipThreshold && !isActive) {
+      continue;
+    }
+
+    ctx.save();
+    // Keep every label physically attached to its segment. The extra half-turn
+    // makes the first character start at the rim and the text run toward the hub;
+    // there is deliberately no screen-relative flipping while the wheel spins.
+    ctx.rotate(midA + Math.PI);
+
+    // Label shortening, font selection and measureText only depend on the
+    // current wheel geometry. Cache them on the segment instead of repeating
+    // the work 60 times per second while it spins.
+    const labelKey = `${W}|${currentWheelID}|${spanA}|${seg.label}|${entry.tier}|${seg.textColor}|${seg.customColor ? 1 : 0}`;
+    if (!seg._labelRender || seg._labelRender.key !== labelKey) {
+      const midR   = textEndR + radialSpace * 0.55;
+      const arcPx  = spanA * midR;
+      const isSmall = arcPx < 19;
+
+      let label = getShortWheelLabel(seg.label || '', entry.wheelID || '');
+
+      if (spanA < shortThreshold) {
+        label = label.replace(/[^A-Za-z0-9]/g, '');
+        label = label.slice(0, isDenseLabelWheel ? 3 : 4);
+      } else if (spanA < mediumThreshold) {
+        label = label.slice(0, isDenseLabelWheel ? 5 : 6);
+      }
+
+      let fontSize;
+      if (spanA < shortThreshold) {
+        fontSize = isDenseLabelWheel ? 6.2 : 6.7;
+      } else if (spanA < mediumThreshold) {
+        fontSize = Math.max(
+          isDenseLabelWheel ? 7.2 : 7.7,
+          Math.min(isDenseLabelWheel ? 9.0 : 9.6, arcPx * 0.78)
+        );
+      } else if (currentWheelID === 'Fate') {
+        // Das Fate Wheel hat nur drei grosse Segmente. Seine kurzen
+        // Hauptbegriffe duerfen deshalb deutlich praesententer sein.
+        fontSize = Math.max(18.0, Math.min(20.0, W * 0.05, arcPx * 0.82));
+      } else {
+        fontSize = Math.max(9.0, Math.min(15.0, W * 0.038, arcPx * 0.82));
+      }
+
+      const isTiny = fontSize <= 6.7;
+      const useWhiteText = ['Legendary','OP','Epic','Rare','Trash'].includes(entry.tier) || isTiny || isSmall;
+      const fitted = fitTextToRadialSpace(label, radialSpace - 3, fontSize, isTiny ? 6.0 : 7.0);
+      seg._labelRender = {
+        key: labelKey,
+        text: fitted.text,
+        font: `${wheelLabelWeight} ${fitted.fontSize}px ${wheelLabelFont}`,
+        fill: seg.customColor
+          ? (seg.textColor || '#ffffff')
+          : (useWhiteText ? '#ffffff' : (seg.textColor || '#ffffff')),
+        lineWidth: isTiny ? 0.75 : 1.0,
+        x: -textStartR
+      };
+    }
+    const labelRender = seg._labelRender;
+
+    ctx.textBaseline = 'middle';
+    ctx.textAlign    = 'left';
+    ctx.lineJoin     = 'round';
+    ctx.miterLimit   = 2;
+
+    ctx.font = labelRender.font;
+
+    // A thin outline stays sharp on Retina displays. The previous 3-4 px blur
+    // made small letters look soft through headphones/iPad screen recording
+    // and also cost more to render during a spin.
+    ctx.shadowColor   = 'transparent';
+    ctx.shadowBlur    = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = 'rgba(0,0,0,0.72)';
+    ctx.lineWidth = labelRender.lineWidth;
+    // The outline is valuable once the wheel stops. While moving it is not
+    // perceptible, but doubles all text draw calls on dense wheels.
+    if (!isSpinningRenderMode) {
+      ctx.strokeText(labelRender.text, labelRender.x, 0);
+    }
+    ctx.fillStyle = labelRender.fill;
+    ctx.fillText(labelRender.text, labelRender.x, 0);
+
+    ctx.restore();
+  }
+
+  // End of the rotating wheel layer. Pointer and hub stay screen-fixed.
+  ctx.restore();
+
+  captureSpinLayer(rotation);
+
+  drawFixedWheelChrome(ctx, W);
+
+  ctx.restore();
+}
+
+function resize() {
+  endCompositedSpin();
+  const area = document.getElementById('wheel-area');
+  if (!area.clientWidth || !area.clientHeight) return;
+  canvasSize = Math.max(80,Math.floor(Math.min(area.clientWidth-16,area.clientHeight-12)));
+  const dpr = Math.min(window.devicePixelRatio || 1,2);
+  canvas.width = Math.round(canvasSize*dpr); canvas.height = Math.round(canvasSize*dpr);
+  canvas.style.width = canvasSize+'px';canvas.style.height = canvasSize+'px';canvas._dpr=dpr;
+  if(spinCanvas){spinCanvas.style.width=canvasSize+'px';spinCanvas.style.height=canvasSize+'px';}
+  drawWheel._shadeKey=null;drawWheel._spinLayerLayout=null;drawWheel._spinLayerWheelID=null;
+  drawWheel(currentRotation);
+}
+
+// ── SPIN-TO-SEGMENT ────────────────────────────────────────────────
+// ── REWARD PANEL ──────────────────────────────────────────────────
+const STAT_KEYS = ['STR', 'IQ', 'SPD', 'DUR', 'PM', 'DEF'];
+
+function getEntryStatDelta(entry) {
+  return {
+    STR: Number(entry.STR || 0),
+    IQ:  Number(entry.IQ  || 0),
+    SPD: Number(entry.SPD || 0),
+    DUR: Number(entry.DUR || 0),
+    PM:  Number(entry.PM  || 0),
+    DEF: Number(entry.DEF || 0),
+  };
+}
+
+// Lange Stat-, Effekt- und Combo-Zeilen bleiben einzeilig, werden aber so weit
+// verkleinert, dass auch auf dem schmaleren iPad-Layout nichts abgeschnitten wird.
+function fitRewardPanelLines(panel) {
+  const lines = panel?.querySelectorAll?.('.rp-fit-line');
+  if (!lines || !lines.length) return;
+
+  const app = document.getElementById('app');
+  const appWidth = Number(app?.clientWidth) || Number(window.innerWidth) || 0;
+  const viewportWidth = Number(window.innerWidth) || appWidth;
+  const available = Math.max(0, Math.min(appWidth, viewportWidth) - 20);
+  if (!available) return;
+
+  Array.from(lines).forEach(line => {
+    if (line.style?.removeProperty) line.style.removeProperty('font-size');
+    else if (line.style) line.style.fontSize = '';
+    if (line.style) line.style.maxWidth = `${available}px`;
+
+    let fontSize = window.getComputedStyle
+      ? parseFloat(window.getComputedStyle(line).fontSize) || 18
+      : 18;
+    const minSize = line.classList?.contains?.('rp-combo-main') ? 9 : 10;
+
+    for (let pass = 0; pass < 4; pass++) {
+      const contentWidth = Number(line.scrollWidth) || 0;
+      if (!contentWidth || contentWidth <= available) break;
+      fontSize = Math.max(minSize, fontSize * (available / contentWidth) * 0.97);
+      if (line.style?.setProperty) line.style.setProperty('font-size', `${fontSize.toFixed(1)}px`, 'important');
+      else if (line.style) line.style.fontSize = `${fontSize.toFixed(1)}px`;
+    }
+  });
+}
+
+function renderSpinRewardPanel(entry, wheelID) {
+  const panel = document.getElementById('reward-panel');
+  panel.textContent = genStep < WHEEL_ORDER.length ? 'TAP FOR NEXT WHEEL' : 'TAP FOR RESULTS';
+  panel.style.display = 'block';
+}
+
+
+let lastTickSeg = null;
+const MAX_VELOCITY = 0.52;
+const LANDING_EDGE_PADDING_RATIO = 0.08;
+
+function getRandomLandingAngle(targetSeg) {
+  const start = Number(targetSeg?.startAngle);
+  const end = Number(targetSeg?.endAngle);
+  const span = end - start;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || !(span > 0)) {
+    return Number(targetSeg?.centerAngle || 0);
+  }
+  const edgePadding = span * LANDING_EDGE_PADDING_RATIO;
+  return start + edgePadding + Math.random() * (span - edgePadding * 2);
+}
+
+function spinToSegment(targetSeg) {
+  stopActiveResultSound();
+  // Spin RIGHT (clockwise = positive rotation)
+  const PI2 = 2 * Math.PI;
+
+  const minRotation = PI2 * 4;
+
+  // The result odds stay unchanged: the segment is chosen first, then the
+  // pointer gets a natural random landing position inside that segment.
+  // An 8% buffer keeps even tiny wedges unambiguous near their borders.
+  const landingAngle = getRandomLandingAngle(targetSeg);
+  const targetCanvas = -Math.PI / 2 - landingAngle;
+  let extraTurns = Math.ceil((minRotation - ((targetCanvas - currentRotation) % PI2 + PI2) % PI2) / PI2);
+  if (extraTurns < 0) extraTurns = 0;
+  const finalRotation = currentRotation + ((targetCanvas - currentRotation) % PI2 + PI2) % PI2 + extraTurns * PI2;
+
+  const totalDist = finalRotation - currentRotation; // always positive
+
+  // Ease-out cubic
+  // Season 2: das Race-Rad dreht deutlich laenger als die uebrigen -
+  // es ist der Auftakt und traegt die Spannung.
+  const _isRace = (WHEEL_ORDER[genStep] === 'Race');
+  const duration = (_isRace ? 4600 : 3500) + Math.random() * 800; // ms
+  const startTime = performance.now();
+  const startRotation = currentRotation;
+
+  lastTickSeg = null;
+  isSpinningRenderMode = true;
+  winnerSeg = null;
+  const useCompositor = beginCompositedSpin(startRotation, finalRotation, duration);
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / duration);
+    // ease out cubic
+    const ease = 1 - Math.pow(1 - t, 3);
+    currentRotation = startRotation + ease * totalDist;
+
+    // Tick sound on segment crossing + live label update
+    const curSeg = getSegmentAtPointer(segLayout, currentRotation);
+    if (curSeg !== lastTickSeg) {
+      lastTickSeg = curSeg;
+      const speedFactor = Math.min(1, (1 - ease) / 0.3);
+      if (t > 0.01) playSpinTick(speedFactor);
+      if (curSeg) { resultText.textContent = getDisplayLabel(curSeg.entry); fitResultText(); }
+    }
+
+    // Every wheel uses a pre-rendered compositor layer on iPad-class layouts.
+    // If the cache is unavailable (or a resize invalidated it), fall back to
+    // the exact vector renderer without changing spin behaviour.
+    if (!useCompositor || !updateCompositedSpin(currentRotation)) {
+      drawWheel(currentRotation, curSeg);
+    }
+
+    if (t < 1) {
+      spinRaf = requestAnimationFrame(frame);
+    } else {
+      currentRotation = finalRotation;
+      spinning = false;
+      isSpinningRenderMode = false;
+      winnerSeg = targetSeg;
+      endCompositedSpin();
+      drawWheel(currentRotation);
+      resultText.textContent = getDisplayLabel(targetSeg.entry);
+      setTimeout(() => { fitResultText(); playResultClickBurst(); }, 80);
+
+      if (generatorActive) {
+        const idx = segLayout.indexOf(targetSeg);
+        const currentWheelID = WHEEL_ORDER[genStep]; // capture before recordResult advances genStep
+        recordResult(idx);
+        // Show reward panel after stats are applied
+        renderSpinRewardPanel(targetSeg.entry, currentWheelID);
+        // Wait for user click/tap to advance to next wheel
+        pendingAdvance = true;
+        setRerollButtonEnabled(Boolean(lastSpinCheckpoint));
+      }
+    }
+  }
+
+  spinRaf = requestAnimationFrame(frame);
+}
+
+// RETRO AUDIO: small square-wave ticks and a four-note result jingle.
+const MASTER_VOLUME = .32;
+let audioCtx=null, masterGain=null, muted=false;
+const activeRetroNotes = new Set();
+let resultSoundTimers=[];
+function initAudio() {
+  try {
+    const AC=window.AudioContext || window.webkitAudioContext;
+    if(!AC) return Promise.resolve(null);
+    if(!audioCtx){audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=muted?0:MASTER_VOLUME;masterGain.connect(audioCtx.destination);}
+    return audioCtx.state==='suspended' ? audioCtx.resume().catch(()=>null) : Promise.resolve(audioCtx);
+  } catch(_){ return Promise.resolve(null); }
+}
+async function prepareSpinAudio(){ await initAudio(); }
+function retroNote(freq, duration=.05, delay=0, volume=.15, type='square') {
+  if(!audioCtx || muted || audioCtx.state!=='running') return;
+  const osc=audioCtx.createOscillator(), gain=audioCtx.createGain(), t=audioCtx.currentTime+delay;
+  osc.type=type;osc.frequency.setValueAtTime(freq,t);
+  gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(volume,t+.003);
+  gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  osc.connect(gain);gain.connect(masterGain);activeRetroNotes.add(osc);
+  osc.onended=()=>{activeRetroNotes.delete(osc);osc.disconnect();gain.disconnect();};
+  osc.start(t);osc.stop(t+duration+.01);
+}
+function stopActiveResultSound(){
+  resultSoundTimers.forEach(clearTimeout);resultSoundTimers=[];
+  for(const osc of activeRetroNotes){try{osc.stop();}catch(_){}}
+  activeRetroNotes.clear();
+}
+function playSpinTick(speedFactor=1){retroNote(520+Math.round(speedFactor*6)*65,.035,0,.10);}
+function playResultClickBurst(){[523.25,659.25,783.99,1046.5].forEach((freq,i)=>retroNote(freq,i===3?.24:.1,i*.095,.15));}
+// END RETRO AUDIO
+
+
+// Tap wheel to spin
+canvas.addEventListener('click', async () => {
+  if (pendingAdvance) {
+    pendingAdvance = false;
+    clearLastSpinCheckpoint();
+    stopActiveResultSound();
+    if (generatorActive) loadNextWheel();
+    return;
+  }
+  if (spinning) return;
+  // Reserve the spin immediately, but do not move the wheel until the tiny
+  // tick sample is ready. Normally it has already decoded on the name screen.
+  spinning = true;
+  await prepareSpinAudio();
+  if (!generatorActive) startGenerator();
+  captureLastSpinCheckpoint();
+  resultText.textContent = '???'; resultText.removeAttribute('textLength'); resultText.removeAttribute('lengthAdjust'); resultText.setAttribute('font-size','38'); resultText.setAttribute('letter-spacing','3');
+  document.getElementById('reward-panel').style.display = 'none';
+  const ep = document.getElementById('effect-preview'); if (ep) ep.style.display = 'none';
+  showSpinStartEffectFlash(WHEEL_ORDER[genStep]);
+  const target = weightedPickSegment(segLayout);
+  spinToSegment(target);
+});
+
+// Keyboard shortcut: Space or Enter to spin
+document.addEventListener('keydown', async (e) => {
+  const raceEditorOverlay = document.getElementById('race-editor-overlay');
+  if (raceEditorOverlay?.classList.contains('open')) {
+    if (e.code === 'Escape') closeRaceEditor();
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape') e.preventDefault();
+    return;
+  }
+  if (e.code === 'Space' || e.code === 'Enter') {
+    // Don't intercept if typing in an input
+    if (document.activeElement?.tagName === 'INPUT') return;
+    e.preventDefault();
+    // If name overlay is visible, submit it
+    const nameOverlay = document.getElementById('name-overlay');
+    if (nameOverlay && nameOverlay.style.display !== 'none') {
+      startWithName();
+      return;
+    }
+    // Otherwise spin
+    if (pendingAdvance) {
+      pendingAdvance = false;
+      clearLastSpinCheckpoint();
+      stopActiveResultSound();
+      if (generatorActive) loadNextWheel();
+      return;
+    }
+    if (spinning) return;
+    spinning = true;
+    await prepareSpinAudio();
+    if (!generatorActive) startGenerator();
+    captureLastSpinCheckpoint();
+    resultText.textContent = '???'; resultText.removeAttribute('textLength'); resultText.removeAttribute('lengthAdjust'); resultText.setAttribute('font-size','38'); resultText.setAttribute('letter-spacing','3');
+    document.getElementById('reward-panel').style.display = 'none';
+    const ep2 = document.getElementById('effect-preview'); if (ep2) ep2.style.display = 'none';
+    showSpinStartEffectFlash(WHEEL_ORDER[genStep]);
+    const target2 = weightedPickSegment(segLayout);
+    spinToSegment(target2);
+  }
+});
+
+function showSpinStartEffectFlash(wheelID) {
+  document.getElementById('reward-panel').style.display = 'none';
+}
+
+function closeEndCard() {
+  const panel = document.getElementById('end-card-panel');
+  panel.style.display = 'none';
+  panel.style.flex = '';
+  document.getElementById('header-center').style.display = 'flex';
+  document.getElementById('wheel-area').style.display = 'flex';
+  generatorActive = false;
+}
+
+function repeatLastSpin() {
+  if (spinning || !pendingAdvance || !generatorActive || !lastSpinCheckpoint) return false;
+  stopActiveResultSound();
+  if (!restoreLastSpinCheckpoint()) return false;
+  currentRotation = 0;
+  winnerSeg = null;
+  lastTickSeg = null;
+  loadNextWheel();
+  return true;
+}
+
+document.getElementById('reroll-btn').addEventListener('click', repeatLastSpin);
+
+// Race editor controls. Event delegation keeps the editor dormant while it is
+// closed and avoids attaching hundreds of listeners to its 44 rows.
+document.getElementById('race-editor-btn')?.addEventListener('click', openRaceEditor);
+document.getElementById('race-editor-close')?.addEventListener('click', closeRaceEditor);
+document.getElementById('race-editor-done')?.addEventListener('click', closeRaceEditor);
+document.getElementById('race-editor-overlay')?.addEventListener('click', event => {
+  if (event.target.id === 'race-editor-overlay') closeRaceEditor();
+});
+document.querySelectorAll('.race-editor-wheel-tab').forEach(button => {
+  button.addEventListener('click', () => selectWheelEditorWheel(button.dataset.editorWheel));
+});
+document.querySelectorAll('.race-editor-preset').forEach(button => {
+  button.addEventListener('click', () => selectRaceEditorLayoutMode(button.dataset.layoutMode));
+});
+document.getElementById('race-editor-export')?.addEventListener('click', exportRaceEditorJSON);
+document.getElementById('race-editor-import')?.addEventListener('click', () => {
+  document.getElementById('race-editor-import-input')?.click();
+});
+document.getElementById('race-editor-import-input')?.addEventListener('change', async event => {
+  const input = event.currentTarget;
+  await importRaceEditorJSON(input.files?.[0]);
+  input.value = '';
+});
+document.getElementById('race-editor-reset-all')?.addEventListener('click', resetRaceEditor);
+
+const raceEditorListElement = document.getElementById('race-editor-list');
+raceEditorListElement?.addEventListener('click', event => {
+  const row = event.target.closest('.race-editor-row');
+  if (!row) return;
+  const moveButton = event.target.closest('.race-move-btn');
+  if (moveButton) {
+    moveRaceEditorRow(row, moveButton.dataset.move);
+    return;
+  }
+  if (event.target.closest('.race-color-reset')) {
+    setRaceEditorRowColor(row, null, true);
+  }
+});
+
+raceEditorListElement?.addEventListener('input', event => {
+  const row = event.target.closest('.race-editor-row');
+  if (!row) return;
+  if (event.target.matches('.race-color-picker')) {
+    setRaceEditorRowColor(row, event.target.value, false);
+    return;
+  }
+  if (event.target.matches('.race-color-hex')) {
+    const color = normalizeRaceEditorHex(event.target.value);
+    if (color) setRaceEditorRowColor(row, color, false);
+  }
+});
+
+raceEditorListElement?.addEventListener('change', event => {
+  const row = event.target.closest('.race-editor-row');
+  if (!row) return;
+  if (event.target.matches('.race-color-picker')) {
+    setRaceEditorRowColor(row, event.target.value, false);
+    saveRaceEditorState(false);
+    return;
+  }
+  if (event.target.matches('.race-color-preset-select')) {
+    const choice = event.target.value;
+    if (choice === 'default') setRaceEditorRowColor(row, null, true);
+    else {
+      const quickColor = STANDARD_RARITY_GRADIENTS[choice]?.[0]
+        || RACE_COLORS[choice]?.bg;
+      if (quickColor) setRaceEditorRowColor(row, quickColor, false);
+    }
+    event.target.value = '';
+    return;
+  }
+  if (event.target.matches('.race-color-hex')) {
+    const color = normalizeRaceEditorHex(event.target.value);
+    if (!color) {
+      const id = String(row.dataset.raceId);
+      const editorState = getWheelEditorState(activeWheelEditorID);
+      const fallback = editorState.colors[id]
+        || normalizeRaceEditorHex(row.dataset.defaultColor)
+        || '#6E7480';
+      event.target.value = fallback;
+      setRaceEditorStatus('Use a color like #2D6BE8', true);
+    }
+  }
+});
+
+raceEditorListElement?.addEventListener('pointerdown', event => {
+  const handle = event.target.closest('.race-drag-handle');
+  if (!handle) return;
+  beginRaceEditorDrag(event, handle.closest('.race-editor-row'));
+});
+document.addEventListener('pointermove', moveRaceEditorDrag, { passive:false });
+document.addEventListener('pointerup', endRaceEditorDrag);
+document.addEventListener('pointercancel', endRaceEditorDrag);
+
+// iPad Safari may freeze or discard a page shortly after it moves into the
+// background. Flush the tiny debounced preference write before that happens.
+window.addEventListener('pagehide', () => {
+  if (raceEditorSaveTimer) saveRaceEditorState(false);
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && raceEditorSaveTimer) {
+    saveRaceEditorState(false);
+  }
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (spinning) return;
+  pendingAdvance = false;
+  stopActiveResultSound();
+  clearLastSpinCheckpoint();
+  closeEndCard();
+  document.getElementById('name-overlay').style.display = 'flex';
+  window.__startAmbient && window.__startAmbient();
+  const inp = document.getElementById('champion-input');
+  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 100); }
+});
+
+document.querySelector('.ctrl-btn-round').addEventListener('click', () => {
+  initAudio();
+  muted = !muted;
+  if (masterGain) masterGain.gain.value = muted ? 0 : MASTER_VOLUME;
+  const btn = document.querySelector('.ctrl-btn-round');
+  btn.style.borderColor = muted ? '#e05555' : '';
+  btn.title = muted ? 'Sound: aus' : 'Sound: an';
+  btn.setAttribute('aria-pressed',String(!muted));
+});
+
+function setTab(el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+window.addEventListener('resize', resize);
+resize();
+updateWheelIcon('Race');
+
+// Champion name
+let championName = '';
+
+function startWithName() {
+  const input = document.getElementById('champion-input');
+  const name = (input?.value || '').trim();
+  championName = name || 'Player';
+  // This button/Enter press is the first reliable user gesture on iPad. Use
+  // it to unlock Web Audio and decode the tick before the Race wheel is tapped.
+  initAudio().catch(() => null);
+  document.getElementById('name-overlay').style.display = 'none';
+  document.getElementById('champion-name-display').textContent = championName.toUpperCase();
+  resize();
+  startGenerator();
+}
+
+// Allow Enter key in input
+document.getElementById('champion-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') startWithName();
+});
+
+// Focus input on load
+if (window.matchMedia('(pointer:fine)').matches) setTimeout(() => document.getElementById('champion-input')?.focus(),100);
+if(document.fonts) document.fonts.ready.then(()=>{getResultTextFit._cache?.clear();drawWheel._spinLayerLayout=null;for(const seg of segLayout) delete seg._labelRender;resize();warmResultTextFits(segLayout);fitResultText();});
+</script>
+</body>
+</html>
